@@ -245,6 +245,8 @@ We know this is successful when these example programs are completed and their o
 
 HTTP server that is multi-threaded and the handler function is scheduled on one of the available threads.
 
+_The API for the http library has not been finalized, this is an aproximation_
+
 ```typescript
 import http from '@std/http'
 import { Mutex } from '@std/sync'
@@ -252,7 +254,7 @@ import { Mutex } from '@std/sync'
 function main() {
   const server = new http.Server()
 
-  server.handle(function(move c: http.Context): void {
+  server.requests.subscribe(function(move c: http.Context): void {
     c.response.setStatus(200)
     c.response.setBodyString(value.toString())
     c.response.send()
@@ -267,6 +269,8 @@ function main() {
 HTTP server that increments a counter stored in a mutex. On each request the counter value will be incremented and the value sent back in the response.
 The HTTP server is multi-threaded and the handler function is scheduled on one of the available threads.
 
+_This is dependant on the design decision describing how ownership of values is passed into nested closures and not final_
+
 ```typescript
 import http from '@std/http'
 import { Mutex } from '@std/sync'
@@ -275,7 +279,7 @@ function main() {
   const server = new http.Server()
   const counter = new Mutex(0)
 
-  server.handle(function(move c: http.Context)[read counter]: void {
+  server.requests.subscribe(function(move c: http.Context)[read counter]: void {
     let value = counter.lock()
     value.increment()
 
