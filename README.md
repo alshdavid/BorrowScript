@@ -249,9 +249,8 @@ _The API for the http library has not been finalized, this is an aproximation_
 
 ```typescript
 import http from '@std/http'
-import { Mutex } from '@std/sync'
 
-function main() {
+async function main() {
   const server = new http.Server()
 
   server.requests.subscribe(function(move c: http.Context): void {
@@ -260,7 +259,7 @@ function main() {
     c.response.send()
   })
 
-  server.listen([127, 0, 0, 1], 3000)
+  await server.listen([127, 0, 0, 1], 3000)
 }
 ```
 
@@ -275,7 +274,7 @@ _This is dependant on the design decision describing how ownership of values is 
 import http from '@std/http'
 import { Mutex } from '@std/sync'
 
-function main() {
+async function main() {
   const server = new http.Server()
   const counter = new Mutex(0)
 
@@ -290,7 +289,7 @@ function main() {
     counter.unlock()
   })
 
-  server.listen([127, 0, 0, 1], 3000)
+  await server.listen([127, 0, 0, 1], 3000)
 }
 ```
 
