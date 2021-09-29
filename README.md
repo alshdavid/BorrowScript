@@ -15,6 +15,7 @@ function main() {
 <h4>Table of Contents</h4>
 
 - [Introduction](#introduction)
+- [Borrow Checker tl:dr](#borrow-checker-tldr)
 - [Audiences](#audiences)
 - [Justification](#justification)
     - [GUI Applications](#gui-applications)
@@ -64,6 +65,20 @@ Would assume:
 let myString: String = String::from("Hello World");
 let myArray: Vec<i32> = Vec::new();
 ```
+
+# Borrow Checker tl:dr
+
+For engineers reading this who haven't spent time learning Rust or are otherwise unfamiliar with the concept of Rust's borrow checker. Rust uses a compiler driven feature, kind of like a linter, that tracks the "ownership" of values in a program.
+
+A variable declared is owned to the scope it was declared in, such as a function body. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
+
+A variable can only have one owner and the owner can only lend out either one "mutable" borrow, or many "readable" borrows.
+
+This allows the compiler to know when a variable is at risk of a data race (e.g. multiple scopes writing to it). It also allows the compiler to know when to make memory allocations and a memory deallocations at *compile time*. 
+
+This results in producing a binary that does not need a garbage collector and a ships a negligible runtime.
+
+Tiny, efficient, safe. Pretty clever.
 
 # Audiences
 
