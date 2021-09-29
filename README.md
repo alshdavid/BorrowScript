@@ -36,6 +36,7 @@ function main() {
       - [Notes](#notes)
 - [Success Challenges / Quest Log](#success-challenges--quest-log)
 - [Examples](#examples)
+  - [HTTP Server](#http-server) 
 
 <h4>Specification Details</h3>
 
@@ -239,7 +240,28 @@ We know this is successful when these example programs are completed and their o
 
 # Examples
 
-## HTTP Server
+## Simple HTTP Server
+
+HTTP server that is multi-threaded and the handler function is scheduled on one of the available threads.
+
+```typescript
+import http from '@std/http'
+import { Mutex } from '@std/sync'
+
+function main() {
+  const server = new http.Server()
+
+  server.handle(function(move c: http.Context): void {
+    c.response.setStatus(200)
+    c.response.setBodyString(value.toString())
+    c.response.send()
+  })
+
+  server.listen([127, 0, 0, 1], 3000)
+}
+```
+
+## HTTP Server with State
 
 HTTP server that increments a counter stored in a mutex. On each request the counter value will be incremented and the value sent back in the response.
 The HTTP server is multi-threaded and the handler function is scheduled on one of the available threads.
