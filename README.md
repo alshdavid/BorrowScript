@@ -237,7 +237,7 @@ We know this is successful when these example programs are completed and their o
 
 - [#1 - Simple Counter](./quest-log/counter.md)
 - [#2 - Simple Web Assembly Application](./quest-log/simple-wasm-application.md)
-- [#3 - Simple HTTP Server](./quest-log/simple-wasm-application.md)
+- [#3 - Simple HTTP Server](./quest-log/simple-http-server.md)
 
 # Examples
 
