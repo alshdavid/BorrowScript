@@ -1,7 +1,10 @@
 <h1>TypeScript BC</h1>
-<i>TypeScript with a Borrow Checker. Multi-threaded, Tiny binaries. No GC. Easy to write.</i>
+<i>TypeScript with a borrow checker, multi-threading, and tiny binaries.</i><br>
+<br>
+Born out of the need for safe multi threading in graphical applications (web, native, desktop) while maintaining the high level of productivity we experience with expressive modern high-level languages.
 
 <h4>Sneak Preview - Hello World</h4>
+
 
 ```typescript
 import console from '@std/console'
@@ -11,6 +14,10 @@ function main() {
   console.log(read text)
 }
 ```
+
+<i>Please contribute to the design of this language specification!</i><br><br>
+<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript</b> libraries instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like Preact</i><br>
+
 
 <h4>Table of Contents</h4>
 
@@ -34,13 +41,13 @@ function main() {
 Below are pages with additional information on the language specification.
 
 - [Borrow Checker](./specification/borrow-checker.md)
-- [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md.md)
+- [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
 - [Mutex](./specification/mutex.md)
 - [Observables](./specification/observables.md)
 - [Promises](./specification/promises.md)
 - [Structural Types](./specification/structural-types.md)
 - [Exceptions](./specification/exceptions.md)
-- [Classes and Inheritance](./specification/classes-and-inheritence.md)
+- [Classes and Inheritance](./specification/classes-and-inheritance.md)
 
 # Introduction
 
@@ -68,9 +75,35 @@ let myArray: Vec<i32> = Vec::new();
 
 # Borrow Checker tl:dr
 
-For engineers reading this who haven't spent time learning Rust or are otherwise unfamiliar with the concept of Rust's borrow checker. Rust uses a compiler driven feature, kind of like a linter, that tracks the "ownership" of values in a program.
+For engineers reading this who are unfamiliar with the concept of Rust's borrow checker. Rust uses a compiler driven feature, kind of like a linter, that tracks the "ownership" of variables in a program.
 
-A variable declared is owned to the scope it was declared in, such as a function body. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
+A variable declared is owned by the scope it was declared in, such as a function body. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
+
+```javascript
+const readLog = (read value) => console.log(value)
+const writeLog = (write value) => log.push('bar')
+const moveLog = (move value) => console.log(value)
+
+// foo is owned by the current scope
+let foo = 'foo'
+
+// The owner gives temporary read access to readLog. 
+// Read access expires when the readLog function exits.
+readLog(read foo)
+
+// The owner gives temporary write access to writeLog. 
+// Due to there being no read borrows, this works.
+//
+// The value is mutated inside writeLog then the write 
+// borrow is released when the function exits.
+writeLog(write foo)
+
+// The owner transfers ownership of foo to the scope of 
+// moveLog. This means it can no longer be accessed from 
+// outside the scope of moveLog and the variable will 
+// be removed from memory when moveLog exits
+moveLog(move foo)
+```
 
 A variable can only have one owner and the owner can only lend out either one "mutable" borrow, or many "readable" borrows.
 
@@ -78,16 +111,16 @@ This allows the compiler to know when a variable is at risk of a data race (e.g.
 
 This results in producing a binary that does not need a garbage collector and a ships a negligible runtime.
 
-Tiny, efficient, safe. Pretty clever.
+Rust's idea is pretty clever, nice work Mozilla!
 
 # Audiences
 
 TypeScript BC targets the engineering of high level application development, namely:
-- Web servers
 - Graphical applications
   - Web applications via web assembly
   - Native mobile applications
   - Native desktop applications
+- Web servers
 - CLI tools
 - Embedded applications
 
@@ -99,9 +132,11 @@ Rust is a fantastic language but often you will hear engineers say that it's "to
 
 It's my opinion that this perceived difficulty comes from the granularity of the data types, syntax format and not the concepts brought in by the borrow checker. 
 
-While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with the simplified control flow and opinionated built-in data types; the concept can be more readably described such that the concept can be more accessible.
+While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with the simplified control flow and opinionated built-in data types; the concept can be more readably described such that it is more accessible.
 
-TypeScript BC seeks to make the borrow checker concept accessible to engineers who would otherwise skip Rust due to its systems-level design.
+Additionally, the high granularity of Rust's type system (e.g. the type signature for a callback) is appropriate for situations where any performance loss is unacceptable. When writing a web application (e.g. Reddit), those details are an unnecessary distraction and for a minimal performance cost the use of high level built in types allows for significant productivity and maintainability gains.
+
+TypeScript BC seeks to make the borrow checker concept accessible to engineers who would otherwise skip Rust due to its low level appearance and systems-level focus.
 
 ### GUI Applications
 
@@ -109,7 +144,7 @@ Graphical applications written targeting web, desktop and mobile have seen a lot
 
 While TypeScript BC is simply a language and does not describe a framework that manages bindings to the various platform UI APIs - it does allow for a simple, familiar language which addresses the concerns that graphical applications have, making it a great candidate for such a use case.
 
-While its primary focus is targeting the web platform via web assembly, there is no reason we would not be able to see React-Native like compilers targeting native desktop and mobile platforms.
+While its primary focus is targeting the web platform via web assembly, there is no reason we would not be able to see React-Native like platform producing native desktop and native mobile platforms.
 
 #### Multi threading
 
@@ -117,7 +152,7 @@ Effective use of multi-threading is critical for making graphical applications f
 
 As an example, web applications are often criticized for their lack of performance when compared to their native counterparts. Native applications however make maximal use of threads and as a result have interfaces that seldom block.
 
-Including a borrow checker into a familiar language used in web development means that concurrency can be used without fear of data races. This will also allow graphical applications to be used on lower end devices as their resources can be utilized more effectively.
+Including a borrow checker into a familiar language used in web development means that concurrency across threads can be used without fear of data races. This will also allow graphical applications to be used on lower end devices as their resources can be utilized more effectively.
 
 #### Small Binary
 
@@ -153,7 +188,9 @@ This is further made appealing by the fact that it is accessible though the simp
 
 # Language Design
 
-TypeScript BC is a subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
+TypeScript BC is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
+
+TSBC is not compatible with existing TypeScript code or libraries. TypeScript BC aims to co-exist as an independent language that inherits the fantastic type system from TypeScript.
 
 For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions below to it.
 
@@ -175,6 +212,19 @@ We create an immutable reference to a `string` object. We then give read-only ac
 - When `main` exits, it returns a status code `0` as default
 - Imports starting with `@std/*` target the standard library
 - Using the `read` operator, a variable is lent for reading
+
+<h4>More Details</h3>
+
+Below are pages with additional information on the language specification.
+
+- [Borrow Checker](./specification/borrow-checker.md)
+- [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
+- [Mutex](./specification/mutex.md)
+- [Observables](./specification/observables.md)
+- [Promises](./specification/promises.md)
+- [Structural Types](./specification/structural-types.md)
+- [Exceptions](./specification/exceptions.md)
+- [Classes and Inheritance](./specification/classes-and-inheritance.md)
 
 # Success Challenges / Quest Log
 

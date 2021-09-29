@@ -7,7 +7,7 @@ When the following code compiled to web assembly is faster than the equivalent T
 *We will need to wait for Web Assembly to be a little more mature, though something like this can be approximated with the current generation of Web Assembly features*
 
 ```typescript
-// TypeScript Static
+// TypeScript BC
 import { window, HTMLDivElement } from '@std/dom'
 
 function main() {

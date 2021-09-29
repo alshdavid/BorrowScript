@@ -1,11 +1,6 @@
 # Borrow Checker
 
-TypeScript Static includes a borrow checker using descriptive operators to indicate the movement of ownership 
-
-- [Borrow Checker](#borrow-checker)
-  - [Operators](#operators)
-  - [Borrow rules](#borrow-rules)
-    - [Example](#example)
+TypeScript BC includes a borrow checker using descriptive operators to indicate the movement of ownership 
 
 ## Operators 
 

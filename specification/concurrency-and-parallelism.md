@@ -59,7 +59,7 @@ A `Queue` must have one or more `Thread` instances allocated. It operates as a t
 interface IQueue {
   schedule(task: () => any): void
   scheduleAfter(task: () => any, duration: time.Duration): () => void
-  scheduleRepeatAfter(task: () => any, interval: : time.Duration): () => void
+  scheduleRepeatAfter(task: () => any, interval: time.Duration): () => void
   flush(): void
   terminate(): void
 }
@@ -84,7 +84,7 @@ function main() {
     console.log("Hello from queue")
   })
 
-  // block thread, waiting for queue to clear
+  // block current thread, waiting for queue to clear
   queue.flush()
 }
 ```
