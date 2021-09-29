@@ -36,7 +36,8 @@ function main() {
       - [Notes](#notes)
 - [Success Challenges / Quest Log](#success-challenges--quest-log)
 - [Examples](#examples)
-  - [HTTP Server](#http-server) 
+  - [Simple HTTP Server](#simple-http-server)
+  - [HTTP Server with Sate](#http-server-with-state) 
 
 <h4>Specification Details</h3>
 
