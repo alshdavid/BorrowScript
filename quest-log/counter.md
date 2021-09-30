@@ -2,18 +2,26 @@
 
 ```typescript
 class Counter {
-  private _count: number
+  private count: number
 
   constructor() {
-    this._count = 0
+    this.count = 0
   }
   
   public write increment(): void {
-    this._count++
+    this.count++
   }
   
   public read getValue(): number {
-    return this._count
+    return this.count
   }
+}
+
+function main() {
+  let c = new Counter()
+  console.log(read c.getValue()) // "0"
+
+  c.increment()
+  console.log(read c.getValue()) // "1"
 }
 ```

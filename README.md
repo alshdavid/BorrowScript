@@ -1,7 +1,10 @@
 <h1>TypeScript BC</h1>
 <i>TypeScript with a borrow checker, multi-threading, and tiny binaries.</i><br>
 <br>
-Born out of the need for safe multi threading in graphical applications (web, native, desktop) while maintaining the high level of productivity we experience with expressive modern high-level languages.
+
+- Safe OS multi-threading for UI driven applications (web/wasm, mobile and desktop) 
+- Consistent, safe and reliable web servers
+- Productive and expressive modern high-level language
 
 <h4>Sneak Preview - Hello World</h4>
 
@@ -16,8 +19,8 @@ function main() {
 ```
 
 <i>Please contribute to the design of this language specification!</i><br><br>
-<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript</b> libraries instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like Preact</i><br>
-
+<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript</b> libraries instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like Preact</i><br><br>
+<i>This project may introduce a means of consuming C++ or Rust libraries to help kick start the available utilities</i>
 
 <h4>Table of Contents</h4>
 
@@ -38,6 +41,9 @@ function main() {
   - [Hello World](#hello-world)
       - [Notes](#notes)
   - [Lambdas, Type Inference and Shorthand](#lambdas-type-inference-and-shorthand)
+    - [Experimental Syntax](#experimental-syntax)
+      - [Shorthand ownership operators](#shorthand-ownership-operators)
+      - [Omitting matching ownership operators](#omitting-matching-ownership-operators)
 - [Success Challenges / Quest Log](#success-challenges--quest-log)
 - [Examples](#examples)
   - [Simple HTTP Server](#simple-http-server)
@@ -48,9 +54,10 @@ function main() {
 Below are pages with additional information on the language specification.
 
 - [Borrow Checker](./specification/borrow-checker.md)
+- [Built-in Types](./specification/builtin-types.md)
+- [Null and Nullable Types](./specification/null-and-nullable-types.md)
 - [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
 - [Mutex](./specification/mutex.md)
-- [Null and Nullable Types](./specification/null-and-nullable-types.md)
 - [Observables](./specification/observables.md)
 - [Promises](./specification/promises.md)
 - [Structural Types](./specification/structural-types.md)
@@ -65,7 +72,7 @@ The objective of this is to have a language that produces the smallest binaries 
 
 The Borrow Checker checker introduced by Rust allows for thread-safe code to be written while also offering the compiler the ability to manage memory allocations and deallocations at compilation time, rather than at runtime through a garbage collector.
 
-The concept of modules in TypeScript allows for efficient static analysis allowing compilers to trim dead code efficiently. 
+The concept of modules in TypeScript allows for efficient static analysis allowing compilers to trim unused code efficiently. 
 
 TypeScript BC aims to be the simplest implementation of a borrow checker and therefore will have built-in types which make assumptions on their implementation. 
 
@@ -78,7 +85,11 @@ const myArray: number[] = []
 Would assume something like:
 ```rust
 let myString: String = String::from("Hello World");
-let myArray: Vec<i32> = Vec::new();
+let myArray: Vec<f32> = Vec::new();
+```
+And will feature type inference and lambda functions
+```typescript
+const myString = "Hello World"
 ```
 
 # Borrow Checker tl:dr
@@ -93,9 +104,7 @@ This allows the compiler to know when a variable is at risk of a data race (e.g.
 
 This results in producing a binary that does not need a garbage collector and a ships a negligible runtime.
 
-Example: 
-
-Here we have three functions declared
+For example; we have three functions declared:
 ```javascript
 // Asks for read only access to a string
 const readLog = (read value: string) => console.log(read value)
@@ -140,7 +149,7 @@ We can also change the owner of `foo` to another scope by using `move`.
 let foo = 'foo'
 moveLog(move foo)
 ```
-This now means that anything on the top level scope can no longer use `foo` as it's owner is `moveLog`. This also means that the `foo` variable will be dropped from memory when the `moveLog` function completes.
+This now means that anything on the top level scope can no longer use `foo` as its owner is `moveLog`. This also means that the `foo` variable will be dropped from memory when the `moveLog` function completes.
 
 So you can imagine the following code would fail
 ```typescript
@@ -172,13 +181,12 @@ The immediate question is _"why not just use Rust?"_.
 
 Rust is a fantastic language but often you will hear engineers say that it's "too difficult" or that "I am not smart enough to learn Rust". 
 
-It's my opinion that this perceived difficulty comes from the granularity of the data types, syntax format and not the concepts brought in by the borrow checker. 
+It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and not the concepts brought in by the borrow checker. 
 
-While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with the simplified control flow and opinionated built-in data types; the concept can be more readably described such that it is more accessible.
+While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with a simplified control flow and opinionated built-in data types allows the concept to be more readably described hopefully empowering engineers who would have otherwise skipped Rust to engage with the concept and write some wicked fast software. 
 
-Additionally, the high granularity of Rust's type system (e.g. the type signature for a callback) is appropriate for situations where any performance loss is unacceptable. When writing a web application (e.g. Reddit), those details are an unnecessary distraction and for a minimal performance cost the use of high level built in types allows for significant productivity and maintainability gains.
+That said, we are seeing Rust continue to push into higher level domains. Web applications and web servers are being written in Rust. While I think that's awesome, I think this demonstrates the desire for a language with the benefits of Rust but, at the cost of a little performance, is simplified such that someone coming from a higher level language can quickly become productive in it.
 
-TypeScript BC seeks to make the borrow checker concept accessible to engineers who would otherwise skip Rust due to its low level appearance and systems-level focus.
 
 ### GUI Applications
 
@@ -214,7 +222,7 @@ There are a few ways that TSBC can be competitive in this context, however.
 
 #### Performance (speculation)
 
-Rust performance is often compared to C++ and tends to out perform languages like Go and Java. 
+Rust performance is often compared to C++ and out performs languages like Go and Java. 
 
 While it's too early to guarantee performance, we know that TSCB is a slightly higher level Rust, where the types are replaced with built-ins. 
 
@@ -222,7 +230,7 @@ I would like to see its performance sit between Rust and Go.
 
 #### Go-like concurrency with Rust-like safety
 
-Having an application server written in a high level, familiar and maintainable language which promises the concurrently of a language like Go while also ensuring you cannot write data races would be compelling.
+Having an application server written in a high level, familiar and maintainable language that promises the concurrently of a language like Go while also ensuring you cannot write data races might be compelling for back-end application developers.
 
 #### Small, statically linked binaries are good for containers
 
@@ -234,21 +242,19 @@ It allows engineers to distribute containerized applications based on `scratch` 
 
 Languages without garbage collection have consistent performance as they avoid locks originating from garbage collection sweeps.
 
-This is especially noticeable in application with lots of activity - such as chat servers.
+This is especially noticeable in applications with lots of activity - such as chat servers.
 
 #### Good candidate for PaaS, FaaS
 
 Lastly; small, self contained, memory and performance optimized binaries make for great candidates in PaaS or FaaS contexts (Lambda, App Engine, Heroku, etc). 
 
-This is further made appealing by the fact that it is accessible though the simplistic and ergonomic language of TypeScript.
-
 # Language Design
 
 TypeScript BC is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
 
-TSBC is not compatible with existing TypeScript code or libraries. TypeScript BC aims to co-exist as an independent language that inherits the fantastic type system from TypeScript.
+TSBC is not compatible with existing TypeScript code or libraries. TypeScript BC aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
 
-For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions below to it.
+For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions to it.
 
 ## Hello World
 
@@ -275,18 +281,46 @@ In the example code I am using the long hand version of everything. I am includi
 
 The language will support lambda functions and TypeScript type inference so it won't be necessary to write the complete type signatures for everything.
 
-In addition, I am exploring the idea of using shorthand ownership operators and sensible defaults namely;
+### Experimental Syntax
+
+#### Shorthand ownership operators
+
+I am exploring the idea of using shorthand ownership operators and sensible defaults namely;
 
 `move` is the default if omitted. `write` will also accept `w`, `read` or `r`, `copy` or `c`.
+
+Both would work:
+```typescript
+function foo(read bar: number) { }
+function foo(r bar: number) { }
+```
+
+#### Omitting matching ownership operators
+
+I am exploring the idea of omitting ownership operators on method parameters when called if the incoming value has matching ownership parameters.
+
+For example the signature for `console.log` describes that it accepts values provided with read access that contain the `toString()` method:
+
+```typescript
+console.log(read ...any[] { toString(): string })
+```
+All built-in types have a `toString` method that only requires `read` access to use.
+```typescript
+const foo = 1337
+
+console.log(read foo)
+console.log(foo) // perhaps this will be fine
+```
 
 <h4>More Details</h3>
 
 Below are pages with additional information on the language specification.
 
 - [Borrow Checker](./specification/borrow-checker.md)
+- [Built-in Types](./specification/builtin-types.md)
+- [Null and Nullable Types](./specification/null-and-nullable-types.md)
 - [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
 - [Mutex](./specification/mutex.md)
-- [Null and Nullable Types](./specification/null-and-nullable-types.md)
 - [Observables](./specification/observables.md)
 - [Promises](./specification/promises.md)
 - [Structural Types](./specification/structural-types.md)
@@ -297,7 +331,7 @@ Below are pages with additional information on the language specification.
 
 We know this is successful when these example programs are completed and their objectives are met.
 
-*Note that these examples make change as the specification and standard library specification evolves*
+*Note that these examples may change as the specification and standard library specification evolves*
 
 - [#1 - Simple Counter](./quest-log/counter.md)
 - [#2 - Simple Web Assembly Application](./quest-log/simple-wasm-application.md)
@@ -312,15 +346,14 @@ HTTP server that is multi-threaded and the handler function is scheduled on one 
 _The API for the http library has not been finalized, this is an aproximation_
 
 ```typescript
-import http from '@std/http'
+import { Server } from '@std/http'
 
 async function main() {
-  const server = new http.Server()
+  const server = new Server()
 
-  server.requests.subscribe(function(move c: http.Context): void {
-    c.response.setStatus(200)
-    c.response.setBodyString(value.toString())
-    c.response.send()
+  server.requests.subscribe((req, res) => {
+    res.setBodyString('Hello World')
+    res.send()
   })
 
   await server.listen([127, 0, 0, 1], 3000)
@@ -335,22 +368,17 @@ The HTTP server is multi-threaded and the handler function is scheduled on one o
 _This is dependant on the design decision describing how ownership of values is passed into nested closures and not final_
 
 ```typescript
-import http from '@std/http'
+import { Server } from '@std/http'
 import { Mutex } from '@std/sync'
 
 async function main() {
-  const server = new http.Server()
-  const counter = new Mutex(0)
+  const server = new Server()
+  const counterRef = new Mutex(0)
 
-  server.requests.subscribe(function(move c: http.Context)[read counter]: void {
-    let value = counter.lock()
+  server.requests.subscribe((req, res)[copy counterRef] => {
+    let value = counterRef.lock()
     value.increment()
-
-    c.response.setStatus(200)
-    c.response.setBodyString(value.toString())
-    c.response.send()
-
-    counter.unlock()
+    res.send()
   })
 
   await server.listen([127, 0, 0, 1], 3000)
