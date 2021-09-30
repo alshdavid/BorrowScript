@@ -29,15 +29,19 @@ function main() {
       - [Multi threading](#multi-threading)
       - [Small Binary](#small-binary)
     - [Web Servers:](#web-servers)
-      - [Go-like Concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
-      - [Tiny, statically linked binaries](#tiny-statically-linked-binaries)
+      - [Performance (speculation)](#performance-speculation)
+      - [Go-like concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
+      - [Small, statically linked binaries are good for containers](#small-statically-linked-binaries-are-good-for-containers)
+      - [No GC is good for performance consistency](#no-gc-is-good-for-performance-consistency)
+      - [Good candidate for PaaS, FaaS](#good-candidate-for-paas-faas)
 - [Language Design](#language-design)
   - [Hello World](#hello-world)
       - [Notes](#notes)
+  - [Lambdas, Type Inference and Shorthand](#lambdas-type-inference-and-shorthand)
 - [Success Challenges / Quest Log](#success-challenges--quest-log)
 - [Examples](#examples)
   - [Simple HTTP Server](#simple-http-server)
-  - [HTTP Server with Sate](#http-server-with-state) 
+  - [HTTP Server with State](#http-server-with-state)
 
 <h4>Specification Details</h3>
 
@@ -70,7 +74,7 @@ For example:
 const myString: string = "Hello World"
 const myArray: number[] = []
 ```
-Would assume:
+Would assume something like:
 ```rust
 let myString: String = String::from("Hello World");
 let myArray: Vec<i32> = Vec::new();
@@ -80,41 +84,75 @@ let myArray: Vec<i32> = Vec::new();
 
 For engineers reading this who are unfamiliar with the concept of Rust's borrow checker. Rust uses a compiler driven feature, kind of like a linter, that tracks the "ownership" of variables in a program.
 
-A variable declared is owned by the scope it was declared in, such as a function body. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
-
-```javascript
-const readLog = (read value) => console.log(value)
-const writeLog = (write value) => log.push('bar')
-const moveLog = (move value) => console.log(value)
-
-// foo is owned by the current scope
-let foo = 'foo'
-
-// The owner gives temporary read access to readLog. 
-// Read access expires when the readLog function exits.
-readLog(read foo)
-
-// The owner gives temporary write access to writeLog. 
-// Due to there being no read borrows, this works.
-//
-// The value is mutated inside writeLog then the write 
-// borrow is released when the function exits.
-writeLog(write foo)
-
-// The owner transfers ownership of foo to the scope of 
-// moveLog. This means it can no longer be accessed from 
-// outside the scope of moveLog and the variable will 
-// be removed from memory when moveLog exits
-moveLog(move foo)
-```
+A variable is owned by the scope it was declared in. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
 
 A variable can only have one owner and the owner can only lend out either one "mutable" borrow, or many "readable" borrows.
 
-This allows the compiler to know when a variable is at risk of a data race (e.g. multiple scopes writing to it). It also allows the compiler to know when to make memory allocations and a memory deallocations at *compile time*. 
+This allows the compiler to know when a variable is at risk of a data race (e.g. multiple scopes writing to it). It also allows the compiler to know when to make memory allocations and a memory deallocations at *compile time*.
 
 This results in producing a binary that does not need a garbage collector and a ships a negligible runtime.
 
+Example: 
+
+Here we have three functions declared
+```javascript
+// Asks for read only access to a string
+const readLog = (read value: string) => console.log(read value)
+
+// Asks for write access to a string
+const writeLog = (write value: string) => log.push('bar')
+
+// Asks for ownership transferal of a string
+const moveLog = (move value: string) => console.log(read value)
+```
+
+If we declare a variable we can then give it to one of these functions to complete an operation. 
+
+In the following example we create a variable and hand out one read borrow to the `readLog` function.
+```typescript
+let foo = 'foo'
+readLog(read foo)
+```
+The read borrow given to `readLog` is temporary and is only present when that function is executing. 
+
+It's helpful to imagine a sort of counter state tracking the borrows for `foo`.
+
+|Owner|top level|
+|-|-|
+|reads|0|
+|writes|0|
+
+When given to `readLog`, the number of `reads` ticks up by one while the function executes, then ticks down when the function completes.
+
+If we then hand a `write` borrow to `writeLog`, we will have one write borrow. Remember, only 1 write borrow **or** infinite read borrows.
+
+```typescript
+let foo = 'foo'
+
+readLog(read foo)
+writeLog(write foo)
+```
+In the above we tick up one `read`, tick down one `read`, tick up one `write`, tick down one `write`.
+
+We can also change the owner of `foo` to another scope by using `move`.
+```typescript
+let foo = 'foo'
+moveLog(move foo)
+```
+This now means that anything on the top level scope can no longer use `foo` as it's owner is `moveLog`. This also means that the `foo` variable will be dropped from memory when the `moveLog` function completes.
+
+So you can imagine the following code would fail
+```typescript
+let foo = 'foo'
+
+moveLog(move foo)
+readLog(read foo) // Error "tried to use 'foo' when you don't own 'foo'"
+```
+
+Tracking a variable's lifecycle like this means no need for a garbage collector.
 Rust's idea is pretty clever, nice work Mozilla!
+
+[Great short and simple video by YouCodeThings explaining the concept](https://www.youtube.com/watch?v=8M0QfLUDaaA)
 
 # Audiences
 
@@ -173,17 +211,31 @@ There are many languages to choose from in this space making the argument for Ty
 
 There are a few ways that TSBC can be competitive in this context, however.
 
-#### Go-like Concurrency with Rust-like safety
+#### Performance (speculation)
+
+Rust performance is often compared to C++ and tends to out perform languages like Go and Java. 
+
+While it's too early to guarantee performance, we know that TSCB is a slightly higher level Rust, where the types are replaced with built-ins. 
+
+I would like to see its performance sit between Rust and Go.
+
+#### Go-like concurrency with Rust-like safety
 
 Having an application server written in a high level, familiar and maintainable language which promises the concurrently of a language like Go while also ensuring you cannot write data races would be compelling.
 
-#### Tiny, statically linked binaries
+#### Small, statically linked binaries are good for containers
 
 While this is an implementation detail of the compiler, entirely self contained binaries that embed their dependencies (unless explicitly specified) are fantastic from a distribution and security perspective.
 
 It allows engineers to distribute containerized applications based on `scratch` images.
 
+#### No GC is good for performance consistency
+
 Languages without garbage collection have consistent performance as they avoid locks originating from garbage collection sweeps.
+
+This is especially noticeable in application with lots of activity - such as chat servers.
+
+#### Good candidate for PaaS, FaaS
 
 Lastly; small, self contained, memory and performance optimized binaries make for great candidates in PaaS or FaaS contexts (Lambda, App Engine, Heroku, etc). 
 
@@ -215,6 +267,16 @@ We create an immutable reference to a `string` object. We then give read-only ac
 - When `main` exits, it returns a status code `0` as default
 - Imports starting with `@std/*` target the standard library
 - Using the `read` operator, a variable is lent for reading
+
+## Lambdas, Type Inference and Shorthand 
+
+In the example code I am using the long hand version of everything. I am including type signatures as well as function definitions.
+
+The language will support lambda functions and TypeScript type inference so it won't be necessary to write the complete type signatures for everything.
+
+In addition, I am exploring the idea of using shorthand ownership operators and sensible defaults namely;
+
+`move` is the default if omitted. `write` will also accept `w`, `read` or `r`, `copy` or `c`.
 
 <h4>More Details</h3>
 

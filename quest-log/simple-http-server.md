@@ -1,32 +1,20 @@
+## Simple Web Server
 
-
-## Web Server
+_Note the standard library hasn't been designed yet so this is demonstrational_
 
 ```typescript
-import console from '@std/console'
-import { Server, Headers, ContentTypes, Request, Response, HandlerFunc } from '@std/http'
-
-function handler(): HandlerFunc {
-  return function (request: Request, response: Response) {
-    response.setStatus(200)
-    response.setHeader(Headers.ContentType, ContentTypes.PlainText)
-    response.setBody('Hello World!')
-    response.send()
-  }
-}
+import { Server, Headers, StatusCode, ContentTypes, Request, Response, HandlerFunc } from '@std/http'
 
 async function main() {
-  let server = Server.from([127, 0, 0, 1], 3000)
+  const server = new http.Server()
 
-  server.handle(handler())
+  server.requests.subscribe(function(req: Request, res: Response) {
+    res.setStatus(StatusCode.Ok)
+    res.setHeader(Headers.ContentType, ContentTypes.PlainText)
+    res.setBody('Hello World!')
+    res.send()
+  })
 
-  try {
-    await server.serve()
-    console.log('Serving on http://localhost:3000')
-  catch (error) {
-    console.log(`Server failed to launch with error: ${error}`)
-  }
+  await server.listen([127, 0, 0, 1], 3000)
 }
 ```
-
-# Examples 
