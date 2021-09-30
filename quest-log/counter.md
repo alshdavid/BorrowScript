@@ -2,26 +2,28 @@
 
 ```typescript
 class Counter {
-  private count: number
+  private count: Mut<number> // defaults to 0
 
   constructor() {
     this.count = 0
   }
   
-  public write increment(): void {
+  public increment(): void {
     this.count++
   }
   
-  public read getValue(): number {
+  // read access is implied
+  public getValue(): number {
     return this.count
   }
 }
 
 function main() {
   let c = new Counter()
-  console.log(read c.getValue()) // "0"
+  // immutable borrow is implied in console.log()
+  console.log(c.getValue()) // "0"
 
   c.increment()
-  console.log(read c.getValue()) // "1"
+  console.log(c.getValue()) // "1"
 }
 ```

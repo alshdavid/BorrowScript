@@ -8,7 +8,7 @@ import { Server, Headers, StatusCode, ContentTypes, Request, Response, HandlerFu
 async function main() {
   const server = new http.Server()
 
-  server.requests.subscribe(function(req: Request, res: Response) {
+  server.requests.subscribe(function(req: Borrow<Request>, res: BorrowMut<Response>) {
     res.setStatus(StatusCode.Ok)
     res.setHeader(Headers.ContentType, ContentTypes.PlainText)
     res.setBody('Hello World!')

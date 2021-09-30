@@ -12,7 +12,7 @@ import { window, HTMLDivElement } from '@std/dom'
 
 function main() {
   // Mutable reference to a div element
-  let div: HTMLDivElement = window.document.createElement('div')
+  let div: Mut<HTMLDivElement> = window.document.createElement('div')
   div.innerHTML = 'Hello World'
 
   // Move ownership to the body
