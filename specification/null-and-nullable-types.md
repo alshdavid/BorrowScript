@@ -4,7 +4,7 @@ Nullable types will be supported through the use of the built in `null`.
 
 Unlike JavaScript where there is both `null` and `undefined`, TSBC will combine both into `null`.
 
-`null` represents a built-in object and not a pointer that points to empty memory.
+`null` represents a built-in object and not a null pointer.
 
 Example:
 
