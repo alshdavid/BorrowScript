@@ -1,6 +1,6 @@
 # Borrow Checker
 
-TypeScript BC includes a borrow checker using descriptive operators to indicate the movement of ownership 
+BorrowScript includes a borrow checker using descriptive operators to indicate the movement of ownership 
 
 ## Operators 
 

@@ -2,7 +2,7 @@ TODO Queues are weird, referencing the main thread
 
 # Concurrency and Parallelism
 
-TSBC includes the capacity to use a single thread directly or use a green thread  tasks queue that spans an allocated thread pool.
+BorrowScript includes the capacity to use a single thread directly or use a green thread  tasks queue that spans an allocated thread pool.
 
 This is split specifically into two objects; `Thread` and `Queue`. <br>You construct a `Queue` using a list of `Thread` instances.
 

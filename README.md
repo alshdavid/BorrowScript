@@ -1,13 +1,12 @@
-<h1>TypeScript BC</h1>
-<i>TypeScript with a borrow checker, multi-threading, and tiny binaries.</i><br>
+<h1>BorrowScript</h1>
+<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i><br>
 <br>
 
-- Safe OS multi-threading for UI driven applications (web/wasm, mobile and desktop) 
+- Safe OS multi-threading for UI driven applications (wasm, mobile and desktop) 
 - Consistent, safe and reliable web servers
 - Productive and expressive modern high-level language
 
-<h4>Sneak Preview - Hello World</h4>
-
+<h4>Hello World</h4>
 
 ```typescript
 import console from '@std/console'
@@ -18,9 +17,25 @@ function main() {
 }
 ```
 
+<h4>Web Server</h4>
+
+```typescript
+import { Server } from '@std/http'
+
+async function main() {
+  const server = new Server()
+
+  server.get('/', (req, res) => {
+    res.setBodyString('Hello World')
+    res.send()
+  })
+
+  await server.listen([127, 0, 0, 1], 3000)
+}
+```
+
 <i>Please contribute to the design of this language specification!</i><br><br>
-<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript</b> libraries instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like Preact</i><br><br>
-<i>This project may introduce a means of consuming C++ or Rust libraries to help kick start the available utilities</i>
+<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript libraries</b> instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like React or Preact</i><br><br>
 
 <h4>Table of Contents</h4>
 
@@ -44,6 +59,7 @@ function main() {
     - [Experimental Syntax](#experimental-syntax)
       - [Shorthand ownership operators](#shorthand-ownership-operators)
       - [Omitting matching ownership operators](#omitting-matching-ownership-operators)
+      - [Consuming external libraries (Rust, C++)](#consuming-external-libraries-rust-c)
 - [Success Challenges / Quest Log](#success-challenges--quest-log)
 - [Examples](#examples)
   - [Simple HTTP Server](#simple-http-server)
@@ -74,7 +90,7 @@ The Borrow Checker checker introduced by Rust allows for thread-safe code to be 
 
 The concept of modules in TypeScript allows for efficient static analysis allowing compilers to trim unused code efficiently. 
 
-TypeScript BC aims to be the simplest implementation of a borrow checker and therefore will have built-in types which make assumptions on their implementation. 
+BorrowScript aims to be the simplest implementation of a borrow checker and therefore will have built-in types which make assumptions on their implementation. 
 
 For example:
 
@@ -166,7 +182,7 @@ Rust's idea is pretty clever, nice work Mozilla!
 
 # Audiences
 
-TypeScript BC targets the engineering of high level application development, namely:
+BorrowScript targets the engineering of high level application development, namely:
 - Graphical applications
   - Web applications via web assembly
   - Native mobile applications
@@ -192,7 +208,7 @@ That said, we are seeing Rust continue to push into higher level domains. Web ap
 
 Graphical applications written targeting web, desktop and mobile have seen a lot of innovation and attention. From technologies like React/React Native, Electron/Cordova to Flutter, there is an interest in creating client applications that are portable between platforms, are performant and memory efficient.
 
-While TypeScript BC is simply a language and does not describe a framework that manages bindings to the various platform UI APIs - it does allow for a simple, familiar language which addresses the concerns that graphical applications have, making it a great candidate for such a use case.
+While BorrowScript is simply a language and does not describe a framework that manages bindings to the various platform UI APIs - it does allow for a simple, familiar language which addresses the concerns that graphical applications have, making it a great candidate for such a use case.
 
 While its primary focus is targeting the web platform via web assembly, there is no reason we would not be able to see React-Native like platform producing native desktop and native mobile platforms.
 
@@ -216,9 +232,9 @@ This is valuable for web applications however, while not strictly required, effi
 
 Web servers require high and consistent IO performance, maintainable code bases and simple distribution.
 
-There are many languages to choose from in this space making the argument for TypeScript BC less compelling on the server side.
+There are many languages to choose from in this space making the argument for BorrowScript less compelling on the server side.
 
-There are a few ways that TSBC can be competitive in this context, however.
+There are a few ways that BorrowScript can be competitive in this context, however.
 
 #### Performance (speculation)
 
@@ -250,9 +266,9 @@ Lastly; small, self contained, memory and performance optimized binaries make fo
 
 # Language Design
 
-TypeScript BC is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
+BorrowScript is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
 
-TSBC is not compatible with existing TypeScript code or libraries. TypeScript BC aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
+BorrowScript is not compatible with existing TypeScript code or libraries. BorrowScript aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
 
 For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions to it.
 
@@ -311,6 +327,12 @@ const foo = 1337
 console.log(read foo)
 console.log(foo) // perhaps this will be fine
 ```
+
+#### Consuming external libraries (Rust, C++)
+
+I would like to introduce a means to consume external Rust and C++ libraries. The how of this is still in discussion. 
+
+TODO
 
 <h4>More Details</h3>
 
