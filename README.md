@@ -351,7 +351,7 @@ import { Server } from '@std/http'
 async function main() {
   const server = new Server()
 
-  server.requests.subscribe((req, res) => {
+  server.get('/', (req, res) => {
     res.setBodyString('Hello World')
     res.send()
   })
@@ -375,7 +375,7 @@ async function main() {
   const server = new Server()
   const counterRef = new Mutex(0)
 
-  server.requests.subscribe((req, res)[copy counterRef] => {
+  server.get('/', (req, res)[copy counterRef] => {
     let value = counterRef.lock()
     value.increment()
     res.send()
