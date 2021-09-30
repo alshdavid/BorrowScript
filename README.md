@@ -1,6 +1,9 @@
-<h1>BorrowScript</h1>
-<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i><br>
 <br>
+<img align="left" height="50px" src="./assets/borrow-script.svg">
+<br>
+<hr>
+
+<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i>
 
 - Safe OS multi-threading for UI driven applications (wasm, mobile and desktop) 
 - Consistent, safe and reliable web servers
@@ -193,7 +196,7 @@ BorrowScript targets the engineering of high level application development, name
 
 # Justification
 
-The immediate question is _"why not just use Rust?"_. 
+The immediate question is ***"why not just use Rust?"***. 
 
 Rust is a fantastic language but often you will hear engineers say that it's "too difficult" or that "I am not smart enough to learn Rust". 
 
@@ -318,7 +321,11 @@ I am exploring the idea of omitting ownership operators on method parameters whe
 For example the signature for `console.log` describes that it accepts values provided with read access that contain the `toString()` method:
 
 ```typescript
-console.log(read ...any[] { toString(): string })
+interface Stringable {
+  read toString(): string
+}
+
+console.log(read ...any Stringable[])
 ```
 All built-in types have a `toString` method that only requires `read` access to use.
 ```typescript
