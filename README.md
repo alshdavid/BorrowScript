@@ -211,14 +211,13 @@ BorrowScript targets the engineering of high level application development, name
 
 The immediate question is ***"why not just use Rust?"***. 
 
-Rust is a fantastic language but often you will hear engineers say that it's "too difficult" or that "I am not smart enough to learn Rust". 
+Rust is a fantastic language but often you will hear engineers say that it's "too difficult", "I am not smart enough to learn Rust", or "the language takes too long to become productive in". Often these sentiments come from engineers writing high level applications (web servers or web applications).
 
-It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and not the concepts brought in by the borrow checker. 
+It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and **not because the borrow checker is hard to understand**.
 
-While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with a simplified control flow and opinionated built-in data types allows the concept to be more readably described hopefully empowering engineers who would have otherwise skipped Rust to engage with the concept and write some wicked fast software. 
+While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with opinionated built-in data types allows the concept to be more readably described. 
 
-That said, we are seeing Rust continue to push into higher level domains. Web applications and web servers are being written in Rust. While I think that's awesome, I think this demonstrates the desire for a language with the benefits of Rust but, at the cost of a little performance, is simplified such that someone coming from a higher level language can quickly become productive in it.
-
+It's the goal of this project is to provide a language that, at the cost of a little performance, is quick to learn and become productive in while also empowering engineers to fearlessly write crazy fast software.
 
 ## GUI Applications
 
