@@ -17,7 +17,6 @@
 
 <br>
 
-
 <i>Please contribute your thoughts to the design of this language specification!</i>
 
 <h4>Hello World</h4>
@@ -26,28 +25,34 @@
 import console from '@std/console'
 
 function main() {
-  const text: string = 'Hello World'
-  console.log(read text)
+  const text = 'Hello World' // Dynamic string
+  console.log(text) // Requires read borrow
 }
 ```
-
 <h4>Web Server</h4>
 
 ```typescript
 import { Server } from '@std/http'
 
-async function main() {
-  const server = new Server()
+async function main() { 
+  const server = new Server()  // http server built into standard library
 
-  server.get('/', (req, res) => {
+  server.get('/', (req, res) => { 
     res.setBodyString('Hello World')
     res.send()
   })
 
-  await server.listen([127, 0, 0, 1], 3000)
+  await server.listen([127, 0, 0, 1], 3000) // Threaded concurrency built in
 }
 ```
 
+<h4>CLI Usage (expected)</h4>
+
+The CLI will include a compiler, test runner, linter, documentation generation and module management.
+
+```shell
+bsc --os linux --arch arm64 -o main main.bs
+```
 
 
 <h2>Table of Contents</h2>
