@@ -31,7 +31,8 @@
 
 <h2>Basic Examples</h2>
 
-<i>This language aims to distil complex Rust concepts into a simple langage inspired by TypeScript</i>
+<i>This language aims to distil complex Rust concepts into a simple langage inspired by TypeScript. The language will implement a standalone compiler that builds self contained statically linked binaries that do not require a garbage collector</i><br><br>
+<i>Please contribute your thoughts to the design of this language specification!</i>
 
 <h4>Hello World</h4>
 
@@ -61,7 +62,7 @@ async function main() {
 }
 ```
 
-<i>Please contribute your thoughts to the design of this language specification!</i><br>
+
 
 <h2>Table of Contents</h2>
 
