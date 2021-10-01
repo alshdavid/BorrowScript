@@ -2,8 +2,7 @@
 <img align="left" height="50px" src="./assets/borrow-script.svg">
 <br>
 <hr>
-<br>
-
+<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i>
 <p align="center"> 
 <table>
   <tr>
@@ -28,7 +27,10 @@
   </tr>
 </table>
 </p>
-<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i>
+
+<hr>
+
+<h2>Basic Examples</h2>
 
 <h4>Hello World</h4>
 
@@ -58,10 +60,9 @@ async function main() {
 }
 ```
 
-<i>Please contribute to the design of this language specification!</i><br><br>
-<i>Note that this <b>does not aim to be compatible with TypeScript and JavaScript libraries</b> instead, like Rust and Go, aims to have a strong standard library to facilitate most use cases where it leans on the community to port projects like React or Preact</i><br><br>
+<i>Please contribute your thoughts to the design of this language specification!</i><br>
 
-<h4>Table of Contents</h4>
+<h2>Table of Contents</h2>
 
 - [Introduction](#introduction)
 - [Borrow Checker tl:dr](#borrow-checker-tldr)
