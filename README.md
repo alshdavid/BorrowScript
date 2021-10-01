@@ -1,7 +1,10 @@
 <br>
 <img align="left" height="50px" src="./assets/borrow-script.svg">
 <br>
-<br><br>
+<p> &nbsp</p>
+
+<img align="left" height="30px" src="./assets/borrow-check.svg">
+<p>Rust inspired Borrow Checker, TypeScript inspired Syntax </p>
 
 <img align="left" height="30px" src="./assets/static-binary.svg">
 <p>Statically Compiled Binary</p>
@@ -14,7 +17,7 @@
 
 <br>
 
-<i>This language aims to distil complex Rust concepts into a simple langage inspired by TypeScript. The language will implement a standalone compiler that builds self contained statically linked binaries that do not require a garbage collector</i><br><br>
+
 <i>Please contribute your thoughts to the design of this language specification!</i>
 
 <h4>Hello World</h4>
