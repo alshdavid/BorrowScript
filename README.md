@@ -1,35 +1,18 @@
 <br>
 <img align="left" height="50px" src="./assets/borrow-script.svg">
 <br>
-<hr>
-<p align="center"> 
-<table>
-  <tr>
-    <td>
-      <p align="center">
-        <img height="50px" src="./assets/static-binary.svg">
-      </p>
-      <p align="center">Statically Compiled<br>Binary</p>
-    </td>
-    <td>
-      <p align="center">
-        <img align="center" height="50px" src="./assets/multi-threaded.svg">
-      </p>
-      <p align="center">Multi Threaded<br> & Concurrent</p>
-    </td>
-    <td>
-      <p align="center">
-        <img align="center" height="50px" src="./assets/fast.svg">
-      </p>
-      <p align="center">High Performance<br>No Garbage Collector</p>
-    </td>
-  </tr>
-</table>
-</p>
+<br><br>
 
-<hr>
+<img align="left" height="30px" src="./assets/static-binary.svg">
+<p>Statically Compiled Binary</p>
 
-<h2>Basic Examples</h2>
+<img align="left" height="30px" src="./assets/multi-threaded.svg">
+<p>Multi Threaded & Concurrent</p>
+
+<img align="left" height="30px" src="./assets/fast.svg">
+<p>Memory Safe Without Garbage Collection</p>
+
+<br>
 
 <i>This language aims to distil complex Rust concepts into a simple langage inspired by TypeScript. The language will implement a standalone compiler that builds self contained statically linked binaries that do not require a garbage collector</i><br><br>
 <i>Please contribute your thoughts to the design of this language specification!</i>
