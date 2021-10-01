@@ -2,12 +2,33 @@
 <img align="left" height="50px" src="./assets/borrow-script.svg">
 <br>
 <hr>
+<br>
 
+<p align="center"> 
+<table>
+  <tr>
+    <td>
+      <p align="center">
+        <img height="50px" src="./assets/static-binary.svg">
+      </p>
+      <p align="center">Statically Compiled<br>Binary</p>
+    </td>
+    <td>
+      <p align="center">
+        <img align="center" height="50px" src="./assets/multi-threaded.svg">
+      </p>
+      <p align="center">Multi Threaded<br> & Concurrent</p>
+    </td>
+    <td>
+      <p align="center">
+        <img align="center" height="50px" src="./assets/fast.svg">
+      </p>
+      <p align="center">High Performance<br>No Garbage Collector</p>
+    </td>
+  </tr>
+</table>
+</p>
 <i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i>
-
-- Safe OS multi-threading for UI driven applications (wasm, mobile and desktop) 
-- Consistent, safe and reliable web servers
-- Productive and expressive modern high-level language
 
 <h4>Hello World</h4>
 
