@@ -2,7 +2,6 @@
 <img align="left" height="50px" src="./assets/borrow-script.svg">
 <br>
 <hr>
-<i>TypeScript with a borrow checker, multi-threading, and tiny static binaries.</i>
 <p align="center"> 
 <table>
   <tr>
@@ -31,6 +30,8 @@
 <hr>
 
 <h2>Basic Examples</h2>
+
+<i>This language aims to distil complex Rust concepts into a simple langage inspired by TypeScript</i>
 
 <h4>Hello World</h4>
 
