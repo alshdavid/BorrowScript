@@ -56,15 +56,16 @@ async function main() {
 - [Borrow Checker tl:dr](#borrow-checker-tldr)
 - [Audiences](#audiences)
 - [Justification](#justification)
-    - [GUI Applications](#gui-applications)
-      - [Multi threading](#multi-threading)
-      - [Small Binary](#small-binary)
-    - [Web Servers:](#web-servers)
-      - [Performance (speculation)](#performance-speculation)
-      - [Go-like concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
-      - [Small, statically linked binaries are good for containers](#small-statically-linked-binaries-are-good-for-containers)
-      - [No GC is good for performance consistency](#no-gc-is-good-for-performance-consistency)
-      - [Good candidate for PaaS, FaaS](#good-candidate-for-paas-faas)
+  - [Why not Rust?](#why-not-rust)
+  - [GUI Applications](#gui-applications)
+    - [Multi threading](#multi-threading)
+    - [Small Binary](#small-binary)
+  - [Web Servers:](#web-servers)
+    - [Performance (speculation)](#performance-speculation)
+    - [Go-like concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
+    - [Small, statically linked binaries are good for containers](#small-statically-linked-binaries-are-good-for-containers)
+    - [No GC is good for performance consistency](#no-gc-is-good-for-performance-consistency)
+    - [Good candidate for PaaS, FaaS](#good-candidate-for-paas-faas)
 - [Language Design](#language-design)
   - [Hello World](#hello-world)
       - [Notes](#notes)
@@ -206,6 +207,8 @@ BorrowScript targets the engineering of high level application development, name
 
 # Justification
 
+## Why not Rust?
+
 The immediate question is ***"why not just use Rust?"***. 
 
 Rust is a fantastic language but often you will hear engineers say that it's "too difficult" or that "I am not smart enough to learn Rust". 
@@ -217,7 +220,7 @@ While the borrow checker certainly has a learning curve, the use of simplified d
 That said, we are seeing Rust continue to push into higher level domains. Web applications and web servers are being written in Rust. While I think that's awesome, I think this demonstrates the desire for a language with the benefits of Rust but, at the cost of a little performance, is simplified such that someone coming from a higher level language can quickly become productive in it.
 
 
-### GUI Applications
+## GUI Applications
 
 Graphical applications written targeting web, desktop and mobile have seen a lot of innovation and attention. From technologies like React/React Native, Electron/Cordova to Flutter, there is an interest in creating client applications that are portable between platforms, are performant and memory efficient.
 
@@ -225,7 +228,7 @@ While BorrowScript is simply a language and does not describe a framework that m
 
 While its primary focus is targeting the web platform via web assembly, there is no reason we would not be able to see React-Native like platform producing native desktop and native mobile platforms.
 
-#### Multi threading
+### Multi threading
 
 Effective use of multi-threading is critical for making graphical applications feel responsive. 
 
@@ -233,7 +236,7 @@ As an example, web applications are often criticized for their lack of performan
 
 Including a borrow checker into a familiar language used in web development means that concurrency across threads can be used without fear of data races. This will also allow graphical applications to be used on lower end devices as their resources can be utilized more effectively.
 
-#### Small Binary
+### Small Binary
 
 As web assembly requires languages to ship their runtime, it's important for languages to ship as little runtime code as possible. 
 
@@ -241,7 +244,7 @@ A borrow checker allows a compiler to compile the code without the need for a ga
 
 This is valuable for web applications however, while not strictly required, efficient small binaries are also appreciated when distributing native applications and web server applications.
 
-### Web Servers:
+## Web Servers:
 
 Web servers require high and consistent IO performance, maintainable code bases and simple distribution.
 
@@ -249,7 +252,7 @@ There are many languages to choose from in this space making the argument for Bo
 
 There are a few ways that BorrowScript can be competitive in this context, however.
 
-#### Performance (speculation)
+### Performance (speculation)
 
 Rust performance is often compared to C++ and out performs languages like Go and Java. 
 
@@ -257,23 +260,23 @@ While it's too early to guarantee performance, we know that TSCB is a slightly h
 
 I would like to see its performance sit between Rust and Go.
 
-#### Go-like concurrency with Rust-like safety
+### Go-like concurrency with Rust-like safety
 
 Having an application server written in a high level, familiar and maintainable language that promises the concurrently of a language like Go while also ensuring you cannot write data races might be compelling for back-end application developers.
 
-#### Small, statically linked binaries are good for containers
+### Small, statically linked binaries are good for containers
 
 While this is an implementation detail of the compiler, entirely self contained binaries that embed their dependencies (unless explicitly specified) are fantastic from a distribution and security perspective.
 
 It allows engineers to distribute containerized applications based on `scratch` images.
 
-#### No GC is good for performance consistency
+### No GC is good for performance consistency
 
 Languages without garbage collection have consistent performance as they avoid locks originating from garbage collection sweeps.
 
 This is especially noticeable in applications with lots of activity - such as chat servers.
 
-#### Good candidate for PaaS, FaaS
+### Good candidate for PaaS, FaaS
 
 Lastly; small, self contained, memory and performance optimized binaries make for great candidates in PaaS or FaaS contexts (Lambda, App Engine, Heroku, etc). 
 
