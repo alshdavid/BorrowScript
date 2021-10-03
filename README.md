@@ -19,7 +19,7 @@
 
 <i>Please contribute your thoughts to the design of this language specification!</i>
 
-<h4>Hello World</h4>
+<h4>Hello World - <a href="#language-design">Skip to Language Design</a></h4> 
 
 ```typescript
 import console from '@std/console'
@@ -30,7 +30,7 @@ function main() {
 }
 ```
 
-[Skip to Language Design](#language-design)
+
 
 <h4>CLI Usage (expected)</h4>
 
