@@ -29,103 +29,248 @@ function main() {
   console.log(read text) // Handing out a "read" borrow
 }
 ```
-<h4>Web Server</h4>
-
-```typescript
-import { Server } from '@std/http'
-
-async function main() { 
-  const server = new Server()  // http server built into standard library
-
-  server.get('/', (req, res) => { 
-    res.setBodyString('Hello World')
-    res.send()
-  })
-
-  await server.listen([127, 0, 0, 1], 3000) // Threaded concurrency built in
-}
-```
 
 <h4>CLI Usage (expected)</h4>
 
-The CLI will include a compiler, test runner, linter, documentation generation and module management.
+The CLI will include a compiler, test runner, formater, linter, documentation generation and module management.
 
 ```shell
 bsc --os linux --arch arm64 -o main main.bs
 ```
 
-
-<h2>Table of Contents</h2>
-
-- [Introduction](#introduction)
-- [Borrow Checker tl:dr](#borrow-checker-tldr)
-- [Audiences](#audiences)
-- [Justification](#justification)
-  - [Why not Rust?](#why-not-rust)
-  - [GUI Applications](#gui-applications)
-    - [Multi threading](#multi-threading)
-    - [Small Binary](#small-binary)
-  - [Web Servers:](#web-servers)
-    - [Performance (speculation)](#performance-speculation)
-    - [Go-like concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
-    - [Small, statically linked binaries are good for containers](#small-statically-linked-binaries-are-good-for-containers)
-    - [No GC is good for performance consistency](#no-gc-is-good-for-performance-consistency)
-    - [Good candidate for PaaS, FaaS](#good-candidate-for-paas-faas)
-- [Language Design](#language-design)
-  - [Hello World](#hello-world)
-      - [Notes](#notes)
-  - [Lambdas, Type Inference and Shorthand](#lambdas-type-inference-and-shorthand)
-    - [Experimental Syntax](#experimental-syntax)
-      - [Shorthand ownership operators](#shorthand-ownership-operators)
-      - [Omitting matching ownership operators](#omitting-matching-ownership-operators)
-      - [Consuming external libraries (Rust, C++)](#consuming-external-libraries-rust-c)
-- [Success Challenges / Quest Log](#success-challenges--quest-log)
-- [Examples](#examples)
-  - [Simple HTTP Server](#simple-http-server)
-  - [HTTP Server with State](#http-server-with-state)
-
-<h4>Specification Details</h3>
-
-Below are pages with additional information on the language specification.
-
-- [Borrow Checker](./specification/borrow-checker.md)
-- [Built-in Types](./specification/builtin-types.md)
-- [Null and Nullable Types](./specification/null-and-nullable-types.md)
-- [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
-- [Mutex](./specification/mutex.md)
-- [Observables](./specification/observables.md)
-- [Promises](./specification/promises.md)
-- [Structural Types](./specification/structural-types.md)
-- [Exceptions](./specification/exceptions.md)
-- [Classes and Inheritance](./specification/classes-and-inheritance.md)
-
 # Introduction
 
 This repository describes the specification for a language based on TypeScript that implements a Rust-like borrow checker.
 
-The objective of this is to have a language that produces the smallest binaries possible, supports multi-threading and offers the ergonomics of the TypeScript language.
+By writing our code in a way that gives the compiler hints as to how we are using our variables; we can have reliable, crazy fast multi-threaded applications.
 
-The Borrow Checker checker introduced by Rust allows for thread-safe code to be written while also offering the compiler the ability to manage memory allocations and deallocations at compilation time, rather than at runtime through a garbage collector.
+The objective of this is to have a language that: 
 
-The concept of modules in TypeScript allows for efficient static analysis allowing compilers to trim unused code efficiently. 
+- Easy to understand
+- Has a quick time-to-productive, competitive with languages like Go
+- Encourages good software design with a focus on maintainability 
+- Produces the smallest binaries possible
+- Supports and encourages multi-threading and concurrency
 
-BorrowScript aims to be the simplest implementation of a borrow checker and therefore will have built-in types which make assumptions on their implementation. 
+
+# Why not Rust?
+
+The immediate question is ***"why not just use Rust?"***. 
+
+Rust is a fantastic language but often you will hear engineers say that it's "too difficult", "I am not smart enough to learn Rust", or "the language takes too long to become productive in".
+
+It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and **not because the borrow checker is hard to understand**.
 
 For example:
 
-```typescript
-const myString: string = "Hello World"
-const myArray: number[] = []
-```
-Would assume something like:
 ```rust
 let myString: String = String::from("Hello World");
 let myArray: Vec<f32> = Vec::new();
+
+fn foo(a: &mut String) -> &String { /*...*/ }
 ```
-And will feature type inference and lambda functions
+Could be distilled down to:
 ```typescript
-const myString = "Hello World"
+const myString: string = "Hello World"
+const myArray: number[] = []
+
+function foo(write a: string): string { /*...*/ }
 ```
+
+
+While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with opinionated built-in data types allows the concept to be more readably described. 
+
+It's the goal of this project is to provide a language that, at the cost of a little performance, is quick to learn and become productive in while also empowering engineers to fearlessly write crazy fast software.
+
+# Language Design
+
+BorrowScript is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
+
+BorrowScript is not compatible with existing TypeScript code or libraries. BorrowScript aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
+
+For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions to it.
+
+## Ownership Operators
+
+Following after Rust, variables are owned by the scope they are declared in. Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access. 
+
+It's practical to visualize each variable with it's own ownership state table.
+
+|Variable|foo|
+|-|-|
+|Owner|main()|
+|reads|0|
+|writes|0|
+
+```typescript
+function main() {
+  const foo = "Hello World"
+
+  readFoo(read foo) // reads++
+  // reads--
+
+  writeFoo(write foo) // writes++
+  // writes--
+}
+```
+
+Ownership privilege is retroactive where an owner has `read`/`write`. A scope with `write` has `read`/`write`. A scope with `read` has `read` only. A scope can only lend out to another scope a permission equal or lower than the current held permission.
+
+### Declaration
+
+Ownership permissions are defined in function or method parameters.
+
+```typescript
+function addWorld(write hello: string): void {
+  hello.push(' World')
+}
+```
+From there the caller can supply a variable to this function, providing the scope has the correct ownership permissions.
+
+```typescript
+function main() {
+  let hello = "Hello" // main() is owner with read/write
+  const world = "World" // main() is owner with read
+
+  addWorld(write hello) // main() gives a write borrow to addWorld() 
+  addWorld(hello) // "write" can be inferred therefore omitted 
+}
+```
+
+### `read`
+
+The `read` operator prevents mutation deeply for all types, including arrays and maps. The compiler will fail to compile the application if a mutation is attempted when read access is provided.
+
+```typescript
+function readFoo(read foo: string) {
+  console.log(foo) // "foo"
+}
+```
+
+Rust equivalent
+```rust
+fn read_foo(foo: &String) {
+  print!("{}", foo);
+}
+```
+
+### `write`
+
+The `write` operator allows mutation deeply for all types, including arrays and maps. Only one write can be given out at any time. There can be no `read` borrows while there is a `write`.
+
+```typescript
+function writeFoo(read foo: string) {
+  foo.push('bar')
+  console.log(foo) // "foobar"
+}
+```
+
+Rust equivalent
+```rust
+fn write_foo(foo: &mut String) {
+  foo.push_str("bar");  // Static string declaration
+  print!("{}", foo);
+}
+```
+
+### `move`
+
+The `move` operator allows for transferal of a variable's ownership from one scope to another. This literally removes a variable from the current scope.
+
+Rust has two variations of moving a value into a function. Moving a value as mutable or immutable. 
+
+It's practical to think of the parameter as a variable declaration `let` or `let mut` (`let` or `const`)
+```rust
+fn move_foo(foo: String) { // let foo
+  print!("{}", foo);
+}
+
+fn move_foo(mut foo: String) { // let mut foo
+  foo.push(String::from("bar")); // Dynamic string declaration
+  print!("{}", foo);
+}
+```
+
+BorrowScript expresses this using the following syntax *(still in discussion)*:
+
+```typescript
+function moveFoo(foo: string) { // if omitted, the compiler will assume an immutable move
+  console.log(foo)
+}
+
+function moveFoo(move<const> foo: string) { // default if omitted 
+  console.log(foo)
+}
+
+function moveFoo(move<let> foo: string) {
+  foo.push('bar')
+  console.log(foo)
+}
+```
+
+### `copy` and "ownership gates"
+
+This is syntax sugar specifically for BorrowScript. It invokes the `.copy()` method on an object. The use case for this is to simplify the transferal of a `Mutex`
+
+Imagine a basic TypeScript scenario where you capture a counter within a closure and increment the value from within a `setTimeout`.
+
+```typescript
+function main() {
+  let counter = { value: 0 }
+  setInterval(makeCallback(counter), 1000)
+}
+
+function makeCallback(state: { value: number }) {
+  return function() {
+    state.value++
+  }
+}
+```
+
+In Rust, the `setTimeout` can be multi-threaded therefore such direct access must be done through a `Mutex`. This ensures threads are not writing to the counter at the same time or reading the counter while a write is happening.
+
+```rust
+// "Arc" lets us clone a reference to our "Mutex" in a way that
+// Rust will allow multiple mutable owners.
+// This is safe due to the implementation of "Mutex"
+fn main() {
+  let fooRef = Arc::new(Mutex::new(0)); // Counter state
+
+  let fooRef1 = fooRef.clone();
+  set_timeout(&callback(fooRef1))
+}
+
+fn callback(counterRef: Arc<Mutex<i32>>) -> impl Fn() {
+    return (move || {
+        let mut counter = counterRef.lock().unwrap();
+        *counter = *counter + 1;
+        println!("{}", counter);
+    })
+}
+```
+We do the same thing in BorrowScript, except we omit the Arc. 
+
+*Either the implementation of Mutex selects and Rc or Arc based on the call tree including a thread or not or we always use an Arc and take a performance hit.*
+
+```typescript
+async function main() {
+  const counterRef = new Mutex(0)
+
+  const counterRef1 = copy counterRef
+  setTimeout(callback(counterRef1))
+}
+
+function makeCallback(counterRef: Mutex<number>) {
+  return function()[move counterRef] {
+    let value = counterRef1.lock()
+    value.increment()
+  }
+}
+```
+
+## Lifetimes
+
+## Threads
 
 # Borrow Checker tl:dr
 
@@ -212,17 +357,7 @@ BorrowScript targets the engineering of high level application development, name
 
 # Justification
 
-## Why not Rust?
 
-The immediate question is ***"why not just use Rust?"***. 
-
-Rust is a fantastic language but often you will hear engineers say that it's "too difficult", "I am not smart enough to learn Rust", or "the language takes too long to become productive in". Often these sentiments come from engineers writing high level applications (web servers or web applications).
-
-It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and **not because the borrow checker is hard to understand**.
-
-While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with opinionated built-in data types allows the concept to be more readably described. 
-
-It's the goal of this project is to provide a language that, at the cost of a little performance, is quick to learn and become productive in while also empowering engineers to fearlessly write crazy fast software.
 
 ## GUI Applications
 
