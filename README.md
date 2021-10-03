@@ -30,9 +30,12 @@ function main() {
 }
 ```
 
+[Skip to Language Design](#language-design)
+
 <h4>CLI Usage (expected)</h4>
 
 The CLI will include a compiler, test runner, formater, linter, documentation generation and module management.
+
 
 ```shell
 bsc --os linux --arch arm64 -o main main.bs
