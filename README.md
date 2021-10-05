@@ -287,7 +287,7 @@ fn read_foo(foo: &String) {
 The `write` operator allows mutation deeply for all types, including arrays and maps. Only one write can be given out at any time. There can be no `read` borrows while there is a `write`.
 
 ```typescript
-function writeFoo(read foo: string) {
+function writeFoo(write foo: string) {
   foo.push('bar')
   console.log(foo) // "foobar"
 }
