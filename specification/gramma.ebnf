@@ -1,7 +1,9 @@
+program := {import} {funcDeclaration} funcDeclaration
+import := "import" ("* as " identifier | "{" {identifier "," } identifier "}" ) from STRING
 funcDeclaration := "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
 variableAssignment := identifier "=" expression;
 variableInitialiser := mutibilityModifier " " identifier (":" identifier )? "=" expression;
-expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall;
+expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration;
 funcCall := identifier "(" ({ expression "," } expression )? ")"
 mutibilityModifier := "let" | "const";
 symbol := STRING | integer | decimal | identifier | boolean;
