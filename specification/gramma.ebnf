@@ -1,0 +1,17 @@
+funcDeclaration := "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
+variableAssignment := identifier "=" expression;
+variableInitialiser := mutibilityModifier " " identifier (":" identifier )? "=" expression;
+expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall;
+funcCall := identifier "(" ({ expression "," } expression )? ")"
+mutibilityModifier := "let" | "const";
+symbol := STRING | integer | decimal | identifier | boolean;
+decimal := integer "." digit {digit}
+integer := digit {digit};
+identifier :=( lowercaseLetter | uppercaseLetter) {alphanumeric};
+boolean := "true" | "false"
+binaryOperator = "+" | "-" | "*" | "/";
+prefixOperator := "!" | "-";
+alphanumeric := digit|lowercaseLetter|uppercaseLetter;
+lowercaseLetter := [a-z];
+uppercaseLetter := [A-Z]
+digit:=[0-9]
