@@ -2,8 +2,8 @@ program := {import} {funcDeclaration} funcDeclaration
 import := "import" ("* as " identifier | "{" {identifier "," } identifier "}" ) from STRING
 variableAssignment := identifier "=" expression;
 variableInitialiser := mutibilityModifier " " identifier (":" identifier )? "=" expression;
-expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration;
-funcDeclaration := "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
+expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration | "await" expression;
+funcDeclaration := "async"? "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
 funcCall := identifier "(" ({ expression "," } expression )? ")"
 mutibilityModifier := "let" | "const";
 symbol := STRING | integer | decimal | identifier | boolean;
