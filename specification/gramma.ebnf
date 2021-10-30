@@ -4,7 +4,7 @@ variableAssignment := identifier "=" expression;
 variableInitialiser := mutibilityModifier " " identifier (":" identifier )? "=" expression;
 expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration | "await" expression;
 funcDeclaration := "async"? "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
-funcCall := identifier "(" ({ expression "," } expression )? ")"
+funcCall := identifier whitespace? "(" whitespace? ({ whitespace? expression whitespace? "," } whitespace? expression whitespace?)? ")"
 mutibilityModifier := "let" | "const";
 symbol := STRING | integer | decimal | identifier | boolean;
 decimal := integer "." digit {digit}
@@ -17,3 +17,5 @@ alphanumeric := digit|lowercaseLetter|uppercaseLetter;
 lowercaseLetter := [a-z];
 uppercaseLetter := [A-Z]
 digit:=[0-9]
+whitespace := " " | {whitespace } " " | COMMENTSTRING | "\n"
+end := ";"
