@@ -1,4 +1,4 @@
-program := whitespace? {import whitespace} {funcDeclaration whitespace} funcDeclaration whitespace?
+program := whitespace? {import whitespace} {globalVariableInitialiser whitespace } {funcDeclaration whitespace} funcDeclaration whitespace?
 import := "import" whitespace ("*" whitespace "as" whitespace identifier | "{" whitespace {identifier whitespace "," whitespace } identifier whitespace "}" ) whitespace from whitespace STRING whitespace? end;
 variableAssignment := identifier "=" expression whitespace? end;
 globalVariableInitialiser := mutibilityModifier whitespace identifier whitespace? (":" whitespace? identifier )? "=" simpleExpression whitespace? end;
