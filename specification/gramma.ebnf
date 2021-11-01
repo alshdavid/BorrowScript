@@ -1,10 +1,10 @@
-program := {import} {funcDeclaration} funcDeclaration
-import := "import" ("* as " identifier | "{" {identifier "," } identifier "}" ) from STRING
-variableAssignment := identifier "=" expression;
-variableInitialiser := mutibilityModifier " " identifier (":" identifier )? "=" expression;
-expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration | "await" expression;
+program := whitespace? {import whitespace} {funcDeclaration whitespace} funcDeclaration whitespace?
+import := "import" whitespace ("*" whitespace "as" whitespace identifier | "{" whitespace {identifier whitespace "," whitespace } identifier whitespace "}" ) whitespace from whitespace STRING whitespace? end;
+variableAssignment := identifier "=" expression whitespace? end;
+variableInitialiser := mutibilityModifier whitespace identifier whitespace? (":" whitespace? identifier )? "=" expression whitespace? end;
+expression := symbol | prefixOperator expression | "(" expression")" | expression binaryOperator expression | funcCall | funcDeclaration | "await" expression | whitespace? expression whitespace?;
 funcDeclaration := "async"? "(" ({variableInitialiser "," } variableInitialiser )?  ")" "=>" expression;
-funcCall := identifier whitespace? "(" whitespace? ({ whitespace? expression whitespace? "," } whitespace? expression whitespace?)? ")"
+funcCall := expression "(" whitespace? ({ whitespace? expression whitespace? "," } whitespace? expression whitespace?)? ")"
 mutibilityModifier := "let" | "const";
 symbol := STRING | integer | decimal | identifier | boolean;
 decimal := integer "." digit {digit}
