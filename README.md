@@ -131,7 +131,7 @@ For example; we have three functions declared:
 const readLog = (read value: string) => console.log(read value)
 
 // Asks for write access to a string
-const writeLog = (write value: string) => log.push('bar')
+const writeLog = (write value: string) => value.push('bar')
 
 // Asks for ownership transferal of a string
 const moveLog = (move value: string) => console.log(read value)
