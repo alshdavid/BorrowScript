@@ -222,7 +222,7 @@ let bar: string | null = null
 
 Following after Rust, variables are owned by the scope they are declared in. Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access. 
 
-It's practical to visualize each variable with it's own ownership state table.
+It's practical to visualize each variable with its own ownership state table.
 
 |Variable|foo|
 |-|-|
