@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" viewBox="0 0 184 22" width="184" height="22"><defs><text id="kGr4lLFq" x="174.46" y="183.02" font-size="23" font-family="Roboto" font-weight="300" font-style="normal" letter-spacing="0" alignment-baseline="before-edge" transform="matrix(1 0 0 1 -110.67311371196752 -188.1825951964288)" style="line-height:100%" xml:space="preserve" dominant-baseline="text-before-edge"><tspan x="174.46" dy="0em" alignment-baseline="before-edge" dominant-baseline="text-before-edge" text-anchor="middle">BorrowScript</tspan></text><style id="roboto300normal">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet" viewBox="0 0 184 22" width="184" height="22">
+  <style>
+    use {
+        fill: #000;
+    }
+    @media (prefers-color-scheme: dark) {
+        use {
+            fill: #fff;
+        }
+    }
+  </style>
+<defs><text id="kGr4lLFq" x="174.46" y="183.02" font-size="23" font-family="Roboto" font-weight="300" font-style="normal" letter-spacing="0" alignment-baseline="before-edge" transform="matrix(1 0 0 1 -110.67311371196752 -188.1825951964288)" style="line-height:100%" xml:space="preserve" dominant-baseline="text-before-edge"><tspan x="174.46" dy="0em" alignment-baseline="before-edge" dominant-baseline="text-before-edge" text-anchor="middle">BorrowScript</tspan></text><style id="roboto300normal">
     @font-face {
     font-family: "Roboto";
     font-weight: 300;
