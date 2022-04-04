@@ -166,83 +166,31 @@ readFoo(foo)  // Infer "read" from function's call signature
 
 ### `move`
 
+The `move` operator allows for transferal of a variable's ownership from one scope to another. This literally removes a variable from the current scope and makes it unavailable.
 
+```typescript
+function moveFooDefault(foo: string) {} // Defaults to move[const]
+function moveFooImmutable(move[const] foo: string) {}
+function moveFooMutable(move[let] foo: string) {}
+
+function main() {
+  const foo = "Hello World"
+
+  moveFooDefault(move foo)
+  // moveFooDefault(foo) can be omitted
+}
+```
 
 ## Rust Examples of Ownership Operators
 
 |Operator|BorrowScript|Rust|
 |-|-|-|
-|`move`|<pre lang="typescript">function readFoo(read foo: string) {&#13;  console.log(foo)&#13;}</pre>||
+|`read`|<pre lang="typescript">function readFoo(read foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn read_foo(foo: &String) {&#13;  print!("{}", foo);&#13;}</pre>|
+|`write`|<pre lang="typescript">function writeFoo(write foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn write_foo(foo: &mut String) {&#13;  foo.push_str("bar");&#13;  print!("{}", foo);&#13;}</pre>|
+|`move[const]`|<pre lang="typescript">function moveFoo(move[const] foo: string) {&#13;  console.log(foo)&#13;}&#13;&#13;function moveFoo(foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(foo: String) {&#13;  print!("{}", foo);&#13;}</pre>|
+|`move[let]`|<pre lang="typescript">
+function moveFoo(move[let] foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(mut foo: String) {&#13;  foo.push(String::from("bar"));&#13;  print!("{}", foo);&#13;}</pre>|
 
-
-### `read`
-
-BorrowScript
-```typescript
-function readFoo(read foo: string) {
-  console.log(foo)
-}
-```
-
-Rust
-```rust
-fn read_foo(foo: &String) {
-  print!("{}", foo);
-}
-```
-
-### `write`
-
-BorrowScript
-```typescript
-function writeFoo(write foo: string) {
-  foo.push('bar')
-  console.log(foo) // "foobar"
-}
-```
-
-Rust
-```rust
-fn write_foo(foo: &mut String) {
-  foo.push_str("bar");  // Static string declaration
-  print!("{}", foo);
-}
-```
-
-### `move`
-
-The `move` operator allows for transferal of a variable's ownership from one scope to another. This literally removes a variable from the current scope.
-
-Rust has two variations of moving a value into a function. Moving a value as mutable or immutable. 
-
-It's practical to think of the parameter as a variable declaration `let` or `let mut` (`let` or `const`)
-```rust
-fn move_foo(foo: String) { // let foo
-  print!("{}", foo);
-}
-
-fn move_foo(mut foo: String) { // let mut foo
-  foo.push(String::from("bar")); // Dynamic string declaration
-  print!("{}", foo);
-}
-```
-
-BorrowScript expresses this using the following syntax:
-
-```typescript
-function moveFoo(foo: string) { // if omitted, the compiler will assume an immutable move
-  console.log(foo)
-}
-
-function moveFoo(move<const> foo: string) { // default if omitted 
-  console.log(foo)
-}
-
-function moveFoo(move<let> foo: string) {
-  foo.push('bar')
-  console.log(foo)
-}
-```
 
 ### `copy`
 
