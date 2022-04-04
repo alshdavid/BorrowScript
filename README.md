@@ -136,7 +136,7 @@ Following after Rust, variables are owned by the scope they are declared in.
 ```typescript
 function main() {
   const foo = 'Hello World' // "foo" is owned by main
-  
+
   // <-- at the end of main's block, the value in "foo" is released 
 }
 ```
@@ -160,7 +160,7 @@ function main() {
   writeFoo(write foo) // "foo" has 1/1 read borrow
   // "foo" has 0/1 read borrow
 
-  // <-- at the end of main's block, the value in "foo" is released 
+  // <-- at the end of main's block, the value in "foo" is released avoiding garbage collection
 }
 ```
 
