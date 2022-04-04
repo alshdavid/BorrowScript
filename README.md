@@ -41,11 +41,13 @@ bsc --os linux --arch arm64 -o main main.bs
 
 ## Summary
 
-BorrowScript aims to be a language that offers a Rust inspired borrow checker with a relatively simplified syntax, doing so at the cost of some performance.
+BorrowScript aims to be a language that offers a Rust inspired borrow checker with a relatively simplified syntax.
 
 It aims to do this by offering higher level builtin types, builtin concurrency and more explanatory keywords for the borrow checker. 
 
 It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing applications like desktop applications, web servers and web applications (through web assembly).
+
+BorrowScript does not expected to match the performance of Rust, but it aims to be competitive with languages like Go - offering more consist performance, smaller binaries and a sensible language to target client programs.
 
 # Language Design
 
