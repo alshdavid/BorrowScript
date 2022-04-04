@@ -47,7 +47,7 @@ It aims to do this by offering higher level builtin types, builtin concurrency a
 
 It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing applications like desktop applications, web servers and web applications (through web assembly).
 
-BorrowScript does not expect to match the performance of Rust, but it aims to be competitive with languages like Go - offering more consist performance, smaller binaries and a sensible language to target client programs.
+BorrowScript does not expect to match the performance of Rust, but it aims to be competitive with languages like Go - offering more consistent performance, smaller binaries and a sensible language to target client programs.
 
 # Language Design
 
