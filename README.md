@@ -12,7 +12,7 @@
 <img align="left" height="30px" src="./assets/multi-threaded.svg">
 <p>Multi Threaded & Concurrent</p>
 
-<img align="left" height="30px" src="./assets/race.svg">
+<img align="left" height="30px" src="./assets/race-conditions.svg">
 <p>Compiler Protection from Race Conditions</p>
 
 <img align="left" height="30px" src="./assets/fast.svg">
