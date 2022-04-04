@@ -308,7 +308,7 @@ Using a channel in a loop will loop over each emitted event until the channel is
 const channel = new Channel<string>()
 
 async ()[copy channel] => {
-  for (const message of yield channel) {
+  for (const message of channel) {
     console.log(message) // 'Hello', 'World'
 
   }
