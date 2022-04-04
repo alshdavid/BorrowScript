@@ -420,7 +420,6 @@ We create an immutable reference to a `string` object. We then give read-only ac
 - An application begins execution at the `main` function.
 - When `main` exits, it returns a status code `0` as default
 - Imports starting with `@std/*` target the standard library
-- Using the `read` operator, a variable is lent for reading
 
 ## Simple HTTP Server
 
