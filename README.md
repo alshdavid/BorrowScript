@@ -170,8 +170,8 @@ function main() {
   readFoo(read foo) // "foo" has 1/infinite read borrow
   // "foo" has 0/infinite read borrow
 
-  writeFoo(write foo) // "foo" has 1/1 read borrow
-  // "foo" has 0/1 read borrow
+  writeFoo(write foo) // "foo" has 1/1 write borrow
+  // "foo" has 0/1 write borrow
 
   // <-- "foo" is released 
 }
