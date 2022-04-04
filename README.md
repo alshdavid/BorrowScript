@@ -397,7 +397,7 @@ if (error != null) {
 }
 ```
 
-#### Consuming external libraries
+## Consuming External Libraries (FFI)
 
 Would be done similarly to [Deno's FFI implementation](https://deno.land/manual/runtime/ffi_api)
 
