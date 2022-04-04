@@ -10,10 +10,13 @@
 <p>Statically Compiled Binary</p>
 
 <img align="left" height="30px" src="./assets/multi-threaded.svg">
-<p>Multi Threaded, Concurrent without Race Conditions</p>
+<p>Multi Threaded & Concurrent</p>
+
+<img align="left" height="30px" src="./assets/race.svg">
+<p>Compiler Protection from Race Conditions</p>
 
 <img align="left" height="30px" src="./assets/fast.svg">
-<p>Memory Safe Without Garbage Collection</p>
+<p>Memory Safe without Garbage Collection</p>
 
 <br>
 
