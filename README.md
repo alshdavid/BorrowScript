@@ -131,22 +131,34 @@ bar.push(' World')
 
 ## Ownership
 
-Following after Rust, variables are owned by the scope they are declared in. 
+The BorrowScript compiler will handle memory allocations and de-allocations at compile time, producing a binary that does not require a runtime garbage collector. This ensures consistent and efficient performance of applications written using BorrowScript.
+
+In order for the compiler to know when a value is ready to be released from memory, it needs some hints from the programmer.
+
+Following in Rust's footsteps, BorrowScript uses an ownership tracker to know when a variable is no longer referenced and it's safe to release it from memory.
+
+A secondary benefit is the compiler can know if a value is at risk of being written to from multiple threads - allowing the compiler to avoid compilation if it detects race conditions.
+
+The "owner" of a variable is its declaration scope:
 
 ```typescript
 function main() {
-  const foo = 'Hello World' // "foo" is owned by main
+  const foo = 'Hello World' // "foo" is owned by "main"
 
   // <-- at the end of main's block, the value in "foo" is released 
   //     avoiding the need for a garbage collector
 }
 ```
 
+Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access.
+
+An owner can `move` a variable to another scope and doing so will make that value inaccessible in its original scope.
+
 ## Ownership Operators
 
 ### `read`/`write`
 
-Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access. 
+
 
 ```typescript
 function readFoo(read foo: string) {}
