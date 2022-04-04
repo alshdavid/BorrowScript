@@ -4,7 +4,7 @@
 <p> &nbsp</p>
 
 <img align="left" height="30px" src="./assets/borrow-check.svg">
-<p>Rust inspired Borrow Checker, TypeScript inspired Syntax </p>
+<p>Rust inspired Borrow Checker, TypeScript inspired Syntax, Go inspired Concurrency</p>
 
 <img align="left" height="30px" src="./assets/static-binary.svg">
 <p>Statically Compiled Binary</p>
