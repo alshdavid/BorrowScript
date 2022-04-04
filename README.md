@@ -310,7 +310,6 @@ const channel = new Channel<string>()
 async ()[copy channel] => {
   for (const message of channel) {
     console.log(message) // 'Hello', 'World'
-
   }
 }()
 
