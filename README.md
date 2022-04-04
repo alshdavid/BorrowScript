@@ -304,7 +304,7 @@ What this essentially tells the compiler is to only work when both the `x` and `
 
 BorrowScript will use Go-like co-routines to manage task queues across multiple processors. The control flow of these concurrent tasks will be managed with the concept of a `Channel` 
 
-_Note, BorrowScript uses `async`/`yield` differently to JavaScript. Think of `async` like the `go` keyword in the Go programming language and `yield` and the `<-` operator_
+_Note, BorrowScript uses `async`/`yield` differently to JavaScript. Think of `async` like the `go` keyword in the Go programming language and `yield` as the `<-` operator_
 
 ### Starting a concurrent task with `async`
 
