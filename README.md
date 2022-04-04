@@ -181,6 +181,18 @@ function main() {
 }
 ```
 
+### `copy`
+
+This is syntax sugar specifically for BorrowScript. It invokes the `.copy()` method on an object.
+
+The use case for this is to simplify the transferal of types through "ownership gates" which we will discuss further below
+
+```typescript
+const foo = "foo"
+let bar = copy foo // same as foo.copy()
+bar.push('bar')
+```
+
 ## Rust Examples of Ownership Operators
 
 |Operator|BorrowScript|Rust|
@@ -190,16 +202,6 @@ function main() {
 |`move[const]`|<pre lang="typescript">function moveFoo(move[const] foo: string) {&#13;  console.log(foo)&#13;}&#13;&#13;function moveFoo(foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(foo: String) {&#13;  print!("{}", foo);&#13;}</pre>|
 |`move[let]`|<pre lang="typescript">function moveFoo(move[let] foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(mut foo: String) {&#13;  foo.push(String::from("bar"));&#13;  print!("{}", foo);&#13;}</pre>|
 
-
-### `copy`
-
-This is syntax sugar specifically for BorrowScript. It invokes the `.copy()` method on an object. The use case for this is to simplify the transferal of types through "ownership gates" which we will discuss further below
-
-```typescript
-const foo = "foo"
-let bar = copy foo // same as foo.copy()
-bar.push('bar')
-```
 
 ### Ownership Gates
 
@@ -236,19 +238,21 @@ setTimeout(()[move message] => { // "move" can be omitted
 
 The complete syntax looks like:
 ```typescript
-function name<T>(params)[gate]: void { /* code */ }
+function name<T>(params)[gate]: void { }
 ```
 
 You can also copy a value into a child scope using ownership gates. Using copy will create a shadow variable with the same name within the child scope.
 
+This is used for moving mutexes into concurrent contexts.
+
 ```typescript
-setTimeout(()[copy message] => { /* code */ })
+setTimeout(()[copy message] => { })
 ```
 Which is equivalent to:
 ```typescript
 const message = "Hello World"
 
-const messageCopy = copy message
+const messageCopy = message.copy()
 setTimeout(()[move messageCopy] => {
   const message = messageCopy
   console.log(message)
@@ -262,67 +266,56 @@ Lifetimes are parameters described using the `lifeof` type operator within a gen
 *This syntax needs a bit of work probably*
 
 ```typescript
-function longestNumber<lifeof A>(A<read> x: number, A<read> y: number): A<number> {
+function longestNumber<lifeof A>(read[A] x: number, read[A] y: number): A<number> {
   // return the longer number
 }
 ```
 What this essentially tells the compiler is to only work when both the `x` and `y` variables share the same lifespan. If one drops out of scope before the other (clearing it from memory) then the life times of the variables are not the same.
 
-## Threads
+## Concurrency, `async` and `yield`
 
-Threads will be available from the standard library via:
+BorrowScript will use Go-like co-routines to manage task queues across multiple processors. The control flow of these concurrent tasks will be managed with the concept of a `Channel` 
+
+_Note, BorrowScript uses `async`/`yield` differently to JavaScript. Think of `async` like the `go` keyword in the Go programming language_
+
+A function is invoked concurrently by prefixing it with `async`
 
 ```typescript
-import { Thread } from '@std/threads'
-
-function main() {
-  const thread1 = new Thread()
-
-  thread1.exec(() => {
-    console.log('Some work')
-  })
-
-  thread1.waitForIdle()
-}
+async () => {
+  console.log('Hello World')
+}()
 ```
 
-## Concurrency, `async` & `await`
+A channel will `yield` a single value or values until it's closed. 
 
-Concurrency is managed by `Promises` (which are basically analogous to Rust's `Future`s). Control flow is managed using `async` `await`. Like JavaScript, functions are executed in an event loop. Unlike JavaScript, these functions may execute on any one of the allocated threads (like Go).
+Calling `yield` on a channel will provide the first value emitted on it.
 
-*This is still in design*
-
-I am experimenting with the idea of having the queue its own object for cases where you want the main thread dedicated to something like UI or IO and the rest of the threads dedicated to work.
 
 ```typescript
-import { Thread } from '@std/thread'
-import { Queue } from '@std/queue'
+const channel = new Channel<string>()
 
-async function main() {
-  const thread1 = new Thread()
-  const thread2 = new Thread()
+async ()[copy channel] => {
+  const message = yield channel
+  console.log(message) // 'Hello'
+}()
 
-  const queue = new Queue([thread1, thread2])
-
-  queue.task(() => console.log('Hello'))
-  queue.task(() => console.log('World'))
-
-  await queue.allSettled()
-}
+channel.emit('Hello')
 ```
 
-Where potentially we use a decorator to use an all-thread concurrency setup
+Using `yield` in a loop allows will continue until the channel is closed or the look broken.
 
 ```typescript
-import { DefaultQueue, queue } from '@std/queue'
+const channel = new Channel<string>()
 
-@DefaultQueue()
-async function main() {
-  queue.task(() => console.log('Hello'))
-  queue.task(() => console.log('World'))
+async ()[copy channel] => {
+  for (const message of yield channel) {
+    console.log(message) // 'Hello', 'World'
 
-  await queue.allSettled()
-}
+  }
+}()
+
+channel.emit('Hello')
+channel.emit('World')
 ```
 
 ## Mutex
