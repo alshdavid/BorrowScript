@@ -172,7 +172,7 @@ readFoo(foo)  // Infer "read" from function's call signature
 
 |Operator|BorrowScript|Rust|
 |-|-|-|
-|`move`|<pre lang="typescript">function readFoo(read foo: string) {<br>  console.log(foo)<br>}</pre>||
+|`move`|<pre lang="typescript">function readFoo(read foo: string) {&#13;  console.log(foo)&#13;}</pre>||
 
 
 ### `read`
