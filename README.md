@@ -72,6 +72,15 @@ const foo = () => {}
 let bar = () => {}
 ```
 
+## Class Declaration
+
+```typescript
+class Foo {
+  constructor() {} // Invoked when class is instantiated
+  destructor() {} // Invoked when class is dropped from scope
+}
+```
+
 ## Types
 
 BorrowScript contains opinionated builtin types. Where Rust would use something like:
@@ -106,6 +115,8 @@ let foo: string | null = 'foo'
 let bar: string | null = null
 ```
 
+### Mutability
+
 Mutability is defined in the binding and affects the _entire_ value (deeply). 
 
 It's essentially a guarantee that any value assigned to the container will abide by the mutability rules defined on the binding.
@@ -116,8 +127,6 @@ Reassignment to another binding will allow values to be changed from mutable/imm
 const foo: string = 'Hello' // immutable string assignment
 let bar = foo // move the value from immutable "foo" into mutable "bar"
 bar.push(' World')
-
-// console.log(foo) <-- Not possible because foo has been moved into bar and thus ownership transferred
 ```
 
 ## Ownership
@@ -127,6 +136,7 @@ Following after Rust, variables are owned by the scope they are declared in.
 ```typescript
 function main() {
   const foo = 'Hello World' // "foo" is owned by main
+  
   // <-- at the end of main's block, the value in "foo" is released 
 }
 ```
