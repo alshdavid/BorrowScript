@@ -160,7 +160,8 @@ function main() {
   writeFoo(write foo) // "foo" has 1/1 read borrow
   // "foo" has 0/1 read borrow
 
-  // <-- at the end of main's block, the value in "foo" is released avoiding garbage collection
+  // <-- at the end of main's block, the value in "foo" is released 
+  //     avoiding the need for garbage collection
 }
 ```
 
