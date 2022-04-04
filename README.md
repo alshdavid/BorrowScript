@@ -231,7 +231,7 @@ In BorrowScript we describe imports from the parent scope of a callback using ow
 ```typescript
 const message = "Hello World"
 
-setTimeout(()[move message] => { // "move" can be omitted
+setTimeout(()[move message] => { // "move" can be omitted as it's the default action
   console.log(message)
 })
 ```
@@ -272,19 +272,32 @@ function longestNumber<lifeof A>(read[A] x: number, read[A] y: number): A<number
 ```
 What this essentially tells the compiler is to only work when both the `x` and `y` variables share the same lifespan. If one drops out of scope before the other (clearing it from memory) then the life times of the variables are not the same.
 
-## Concurrency, `async` and `yield`
+## Concurrency
 
 BorrowScript will use Go-like co-routines to manage task queues across multiple processors. The control flow of these concurrent tasks will be managed with the concept of a `Channel` 
 
 _Note, BorrowScript uses `async`/`yield` differently to JavaScript. Think of `async` like the `go` keyword in the Go programming language_
 
+### Starting a concurrent task with `async`
+
 A function is invoked concurrently by prefixing it with `async`
 
 ```typescript
+function concurrentFunc() {
+  console.log('Hello World')
+}
+
+async concurrentFunc
+```
+
+You can do this with functions defined inline
+```typescript
 async () => {
   console.log('Hello World')
-}()
+}
 ```
+
+### Channels and `yield`
 
 A channel will `yield` a single value or values until it's closed. 
 
@@ -297,7 +310,7 @@ const channel = new Channel<string>()
 async ()[copy channel] => {
   const message = yield channel
   console.log(message) // 'Hello'
-}()
+}
 
 channel.emit('Hello')
 ```
@@ -311,7 +324,7 @@ async ()[copy channel] => {
   for (const message of channel) {
     console.log(message) // 'Hello', 'World'
   }
-}()
+}
 
 channel.emit('Hello')
 channel.emit('World')
@@ -322,15 +335,12 @@ channel.emit('World')
 To manage variables that need to be written to from multiple threads we use a Mutex which holds a state and allows us to lock/unlock access to it, ensuring no one can get the value when it's being used.
 
 ```typescript
-import { Mutex } from '@std/sync'
+const counterRef = new Mutex(0)
 
-async function main() {
-  const counterRef = new Mutex(0)
-
-  setInterval(()[copy counterRef] => {
-    let counter = counterRef.unlock()
-    counter.increment()
-  }, 1000)
+async ()[copy counterRef] => {
+  let counter = counterRef.unlock()
+  counter.increment()
+  // <-- counterRef.lock() automatically invoked
 }
 ```
 
@@ -353,20 +363,17 @@ fn main() {
 At this stage, errors will be return values from tuples
 
 ```typescript
-const [ value, error ] = parseInt("Not a number")
+const [ value, error ] = Number.fromString("Not a number")
 if (error != null) {
   // handle
 }
 ```
 
+#### Consuming external libraries
 
-# Language Design
+Would be done similarly to [Deno's FFI implementation](https://deno.land/manual/runtime/ffi_api)
 
-BorrowScript is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
-
-BorrowScript is not compatible with existing TypeScript code or libraries. BorrowScript aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
-
-For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions to it.
+# Application Examples
 
 ## Hello World
 
@@ -375,7 +382,7 @@ import console from '@std/console'
 
 function main() {
   const text: string = 'Hello World'
-  console.log(read text)
+  console.log(text)
 }
 ```
 
@@ -387,98 +394,24 @@ We create an immutable reference to a `string` object. We then give read-only ac
 - Imports starting with `@std/*` target the standard library
 - Using the `read` operator, a variable is lent for reading
 
-## Lambdas, Type Inference and Shorthand 
-
-In the example code I am using the long hand version of everything. I am including type signatures as well as function definitions.
-
-The language will support lambda functions and TypeScript type inference so it won't be necessary to write the complete type signatures for everything.
-
-### Experimental Syntax
-
-#### Shorthand ownership operators
-
-I am exploring the idea of using shorthand ownership operators and sensible defaults namely;
-
-`move` is the default if omitted. `write` will also accept `w`, `read` or `r`, `copy` or `c`.
-
-Both would work:
-```typescript
-function foo(read bar: number) { }
-function foo(r bar: number) { }
-```
-
-#### Omitting matching ownership operators
-
-I am exploring the idea of omitting ownership operators on method parameters when called if the incoming value has matching ownership parameters.
-
-For example the signature for `console.log` describes that it accepts values provided with read access that contain the `toString()` method:
-
-```typescript
-interface Stringable {
-  read toString(): string
-}
-
-console.log(read ...any Stringable[])
-```
-All built-in types have a `toString` method that only requires `read` access to use.
-```typescript
-const foo = 1337
-
-console.log(read foo)
-console.log(foo) // perhaps this will be fine
-```
-
-#### Consuming external libraries (Rust, C++)
-
-I would like to introduce a means to consume external Rust and C++ libraries. The how of this is still in discussion. 
-
-TODO
-
-<h4>More Details</h3>
-
-Below are pages with additional information on the language specification.
-
-- [Borrow Checker](./specification/borrow-checker.md)
-- [Built-in Types](./specification/builtin-types.md)
-- [Null and Nullable Types](./specification/null-and-nullable-types.md)
-- [Concurrency and Parallelism](./specification/concurrency-and-parallelism.md)
-- [Mutex](./specification/mutex.md)
-- [Observables](./specification/observables.md)
-- [Promises](./specification/promises.md)
-- [Structural Types](./specification/structural-types.md)
-- [Exceptions](./specification/exceptions.md)
-- [Classes and Inheritance](./specification/classes-and-inheritance.md)
-
-# Success Challenges / Quest Log
-
-We know this is successful when these example programs are completed and their objectives are met.
-
-*Note that these examples may change as the specification and standard library specification evolves*
-
-- [#1 - Simple Counter](./quest-log/counter.md)
-- [#2 - Simple Web Assembly Application](./quest-log/simple-wasm-application.md)
-- [#3 - Simple HTTP Server](./quest-log/simple-http-server.md)
-
-# Examples
-
 ## Simple HTTP Server
 
-HTTP server that is multi-threaded and the handler function is scheduled on one of the available threads.
+HTTP server that is multi-threaded and the handler functions are concurrent and possibly multi-threaded.
 
-_The API for the http library has not been finalized, this is an aproximation_
+_The API for the http library has not been finalized, this is an approximation_
 
 ```typescript
-import { Server } from '@std/http'
+import { Server, HeaderType, ContentType } from '@std/http'
 
 async function main() {
   const server = new Server()
 
-  server.get('/', (req, res) => {
-    res.setBodyString('Hello World')
-    res.send()
+  server.handle((req, res) => {
+    res.setHeader(HeaderType.ContentType, ContentType.Text)
+    res.send('Hello World')
   })
 
-  await server.listen([127, 0, 0, 1], 3000)
+  server.listen(3000)
 }
 ```
 
@@ -490,24 +423,30 @@ The HTTP server is multi-threaded and the handler function is scheduled on one o
 _This is dependant on the design decision describing how ownership of values is passed into nested closures and not final_
 
 ```typescript
-import { Server } from '@std/http'
+import { Server, HeaderType, ContentType } from '@std/http'
 import { Mutex } from '@std/sync'
+import { sleep, Duration } from '@std/time'
 
 async function main() {
   const server = new Server()
   const counterRef = new Mutex(0)
 
-  server.get('/', (req, res)[copy counterRef] => {
-    let value = counterRef.lock()
-    value.increment()
-    res.send()
+  // Increment counter every second
+  async ()[copy counterRef] => {
+    while (true) {
+      let value = counterRef.lock()
+      value.increment()
+      sleep(Duration.Second)
+    }
+  }
+
+  // Send the current value of the counter on the next request
+  server.handle((req, res)[copy counterRef] => {
+    const value = counterRef.lock()
+    res.setHeader(HeaderType.ContentType, ContentType.Text)
+    res.send(value)
   })
 
-  await server.listen([127, 0, 0, 1], 3000)
+  server.listen(3000)
 }
 ```
-
-
-
-
-
