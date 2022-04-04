@@ -170,22 +170,10 @@ readFoo(foo)  // Infer "read" from function's call signature
 
 ## Rust Examples of Ownership Operators
 
-<table>
-<tr>
-<th>Operator</th>
-<th>BorrowScript</th>
-<th>Rust</th>
-</tr>
-<tr>
-<td><pre>read</pre></td>
-<td><pre lang="typescript">
-function readFoo(read foo: string) {
-  console.log(foo)
-}
-</pre></td>
-    <td></td>
-  </tr>
-</table>
+|Operator|BorrowScript|Rust|
+|-|-|-|
+|`move`|<pre lang="typescript">function readFoo(read foo: string) {<br>  console.log(foo)<br>}</pre>||
+
 
 ### `read`
 
