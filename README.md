@@ -19,7 +19,7 @@
 
 <i>Please contribute your thoughts to the design of this language specification!</i>
 
-<h4>Hello World - <a href="#language-design">Skip to Language Design</a></h4> 
+## Hello World
 
 ```typescript
 import console from '@std/console'
@@ -30,252 +30,174 @@ function main() {
 }
 ```
 
-
-
-<h4>CLI Usage (expected)</h4>
-
-The CLI will include a compiler, test runner, formater, linter, documentation generation and module management.
-
+## CLI Usage
 
 ```shell
 bsc --os linux --arch arm64 -o main main.bs
 ```
 
-<h4>Table of Contents</h4>
+## Summary
 
-- [Introduction](#introduction)
-- [Why not Rust?](#why-not-rust)
-- [Borrow Checker tl:dr](#borrow-checker-tldr)
-- [Language Design](#language-design)
-  - [Builtin Types](#builtin-types)
-  - [Ownership Operators](#ownership-operators)
-    - [Declaration location](#declaration-location)
-    - [`read`](#read)
-    - [`write`](#write)
-    - [`move`](#move)
-    - [`copy`](#copy)
-    - [Ownership Gates](#ownership-gates)
-  - [Lifetimes](#lifetimes)
-  - [Threads](#threads)
-  - [Concurrency, `async` & `await`](#concurrency-async--await)
-  - [Mutex](#mutex)
-  - [Error handling](#error-handling)
-- [Audiences](#audiences)
-- [Justification](#justification)
-  - [GUI Applications](#gui-applications)
-    - [Multi threading](#multi-threading)
-    - [Small Binary](#small-binary)
-  - [Web Servers:](#web-servers)
-    - [Performance (speculation)](#performance-speculation)
-    - [Go-like concurrency with Rust-like safety](#go-like-concurrency-with-rust-like-safety)
-    - [Small, statically linked binaries are good for containers](#small-statically-linked-binaries-are-good-for-containers)
-    - [No GC is good for performance consistency](#no-gc-is-good-for-performance-consistency)
-    - [Good candidate for PaaS, FaaS](#good-candidate-for-paas-faas)
-- [Language Design](#language-design-1)
-  - [Hello World](#hello-world)
-      - [Notes](#notes)
-  - [Lambdas, Type Inference and Shorthand](#lambdas-type-inference-and-shorthand)
-    - [Experimental Syntax](#experimental-syntax)
-      - [Shorthand ownership operators](#shorthand-ownership-operators)
-      - [Omitting matching ownership operators](#omitting-matching-ownership-operators)
-      - [Consuming external libraries (Rust, C++)](#consuming-external-libraries-rust-c)
-- [Success Challenges / Quest Log](#success-challenges--quest-log)
-- [Examples](#examples)
-  - [Simple HTTP Server](#simple-http-server)
-  - [HTTP Server with State](#http-server-with-state)
+BorrowScript aims to be a language that offers Rust's borrow checker with a relatively simplified syntax, doing so at the cost of some performance.
 
-# Introduction
+It aims to do this by offering higher level builtin types, builtin concurrency and more explanatory keywords for the borrow checker. 
 
-This repository describes the specification for a language based on TypeScript that implements a Rust-like borrow checker.
-
-By writing our code in a way that gives the compiler hints as to how we are using our variables; we can have reliable, crazy fast multi-threaded applications.
-
-The objective of this is to have a language that: 
-
-- Is easy to understand
-- Has a quick time-to-productive, competitive with languages like Go
-- Encourages good software design with a focus on maintainability 
-- Produces the smallest binaries possible
-- Supports and encourages multi-threading and concurrency
-
-
-# Why not Rust?
-
-The immediate question is ***"why not just use Rust?"***. 
-
-Rust is a fantastic language but often you will hear engineers say that it's "too difficult", "I am not smart enough to learn Rust", or "the language takes too long to become productive in".
-
-It's my opinion that this perceived difficulty comes from the granularity of the data types, symbol overload, syntax format and **not because the borrow checker is hard to understand**.
-
-While the borrow checker certainly has a learning curve, the use of simplified descriptive operators combined with opinionated built-in data types allows the concept to be more readably described. 
-
-It's the goal of this project is to provide a language that, at the cost of a little performance, is quick to learn and become productive in while also empowering engineers to fearlessly write crazy fast software.
-
-# Borrow Checker tl:dr
-
-*Feel free to skip this if you already understand the borrow checker.*
-
-Rust uses a compiler driven feature, kind of like a linter, that tracks the "ownership" of variables in a program.
-
-A variable is owned by the scope it was declared in. The owner can then "move" the value to another scope or lend the value out for "reading" or "mutation". 
-
-A variable can only have one owner and the owner can only lend out either one "mutable" borrow, or many "readable" borrows.
-
-This allows the compiler to know when a variable is at risk of a data race (e.g. multiple scopes writing to it). It also allows the compiler to know when to make memory allocations and a memory deallocations at *compile time*.
-
-This results in producing a binary that does not need a garbage collector and a ships a negligible runtime.
-
-For example; we have three functions declared:
-```javascript
-// Asks for read only access to a string
-const readLog = (read value: string) => console.log(read value)
-
-// Asks for write access to a string
-const writeLog = (write value: string) => value.push('bar')
-
-// Asks for ownership transferal of a string
-const moveLog = (move value: string) => console.log(read value)
-```
-
-If we declare a variable we can then give it to one of these functions to complete an operation. 
-
-In the following example we create a variable and hand out one read borrow to the `readLog` function.
-```typescript
-let foo = 'foo'
-readLog(read foo)
-```
-The read borrow given to `readLog` is temporary and is only present when that function is executing. 
-
-It's helpful to imagine a sort of counter state tracking the borrows for `foo`.
-
-|Owner|top level|
-|-|-|
-|reads|0|
-|writes|0|
-
-When given to `readLog`, the number of `reads` ticks up by one while the function executes, then ticks down when the function completes.
-
-If we then hand a `write` borrow to `writeLog`, we will have one write borrow. Remember, only 1 write borrow **or** infinite read borrows.
-
-```typescript
-let foo = 'foo'
-
-readLog(read foo)
-writeLog(write foo)
-```
-In the above we tick up one `read`, tick down one `read`, tick up one `write`, tick down one `write`.
-
-We can also change the owner of `foo` to another scope by using `move`.
-```typescript
-let foo = 'foo'
-moveLog(move foo)
-```
-This now means that anything on the top level scope can no longer use `foo` as its owner is `moveLog`. This also means that the `foo` variable will be dropped from memory when the `moveLog` function completes.
-
-So you can imagine the following code would fail
-```typescript
-let foo = 'foo'
-
-moveLog(move foo)
-readLog(read foo) // Error "tried to use 'foo' when you don't own 'foo'"
-```
-
-Tracking a variable's lifecycle like this means no need for a garbage collector.
-Rust's idea is pretty clever, nice work Mozilla!
-
-[Great short and simple video by YouCodeThings explaining the concept](https://www.youtube.com/watch?v=8M0QfLUDaaA)
+It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing applications like desktop applications, web servers and web applications (through web assembly).
 
 # Language Design
 
-BorrowScript is a derivative subset of the existing TypeScript language with the addition of keywords and concepts to enable the use of borrow checking.
+## Variable Declaration
 
-BorrowScript is not compatible with existing TypeScript code or libraries. BorrowScript aims to co-exist as an independent language that inherits the fantastic type system from TypeScript and applies the borrow checker concept from Rust.
+To declare a variable you can use the keywords `const` and `let`, which describe immutable and mutable bindings.
 
-For the most part, you can look at the existing TypeScript language specification and apply the borrow checker additions to it.
+```typescript
+let foo = 'foo' // mutable
+const bar = 'bar' // immutable
+```
 
-## Builtin Types
+## Function Declarations
+
+Functions can be defined in full or using shorthand lambda expressions
+
+```typescript
+function foo() {} // immutable declaration
+
+// Shorthand
+const foo = () => {}
+let bar = () => {}
+```
+
+## Types
 
 BorrowScript contains opinionated builtin types. Where Rust would use something like:
+
 ```rust
 let myString: String = String::from("Hello World");
 ```
+
 BorrowScript uses:
+
 ```typescript
 const myString: string = "Hello World"
+const myString = "Hello World" // type inference
 ```
+
 All types are references to objects and can be mutated or reassigned if permitted. The types are as follows:
+
 ```typescript
 const s: string = ""
 const n: number = 0
 const b: boolean = true
-const z: null = null
+const z: null = null // null is an object and not a null pointer
 const a: Array<string> = [] 
 const m: Map<string, string> = new Map()
+const s: Set<string> = new Set()
 ```
-Nullable types are described as. Remember that `null` is an object and not a null pointer:
+
+Nullable types are described as:<br>
+
 ```typescript
 let foo: string | null = 'foo'
 let bar: string | null = null
 ```
 
+Mutability is defined in the binding and affects the _entire_ value (deeply). 
+
+It's essentially a guarantee that any value assigned to the container will abide by the mutability rules defined on the binding.
+
+Reassignment to another binding will allow values to be changed from mutable/immutable as the binding defines the mutability rules.
+
+```typescript
+const foo: string = 'Hello' // immutable string assignment
+let bar = foo // move the value from immutable "foo" into mutable "bar"
+bar.push(' World')
+
+// console.log(foo) <-- Not possible because foo has been moved into bar and thus ownership transferred
+```
+
+## Ownership
+
+Following after Rust, variables are owned by the scope they are declared in. 
+
+```typescript
+function main() {
+  const foo = 'Hello World' // "foo" is owned by main
+  // <-- at the end of main's block, the value in "foo" is released 
+}
+```
+
 ## Ownership Operators
 
-Following after Rust, variables are owned by the scope they are declared in. Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access. 
+### `read`/`write`
 
-It's practical to visualize each variable with its own ownership state table.
-
-|Variable|foo|
-|-|-|
-|Owner|main()|
-|reads|0|
-|writes|0|
+Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access. 
 
 ```typescript
+function readFoo(read foo: string) {}
+function writeFoo(write foo: string) {}
+
 function main() {
-  const foo = "Hello World"
+  let foo = "Hello World" // "foo" is owned by main
 
-  readFoo(read foo) // reads++
-  // reads--
+  readFoo(read foo) // "foo" has 1/infinite read borrow
+  // "foo" has 0/infinite read borrow
 
-  writeFoo(write foo) // writes++
-  // writes--
+  writeFoo(write foo) // "foo" has 1/1 read borrow
+  // "foo" has 0/1 read borrow
+
+  // <-- at the end of main's block, the value in "foo" is released 
 }
 ```
 
-Ownership privilege is retroactive where an owner has `read`/`write`. A scope with `write` has `read`/`write`. A scope with `read` has `read` only. A scope can only lend out to another scope a permission equal or lower than the current held permission.
+A scope with `write` has `read`/`write`. <br>
+A scope with `read` has `read` only. <br>
+A scope can only lend out to another scope a permission equal or lower than the current held permission.
 
-### Declaration location
-
-Ownership permissions are defined in function or method parameters.
+*Note that the ownership operator can be omitted when passing a value into a function*
 
 ```typescript
-function addWorld(write hello: string): void {
-  hello.push(' World')
-}
-```
-From there the caller can supply a variable to this function, providing the scope has the correct ownership permissions.
+function readFoo(read foo: string) {}
 
-```typescript
-function main() {
-  let hello = "Hello" // main() is owner with read/write
-  const world = "World" // main() is owner with read
+const foo = "Hello World"
 
-  addWorld(write hello) // main() gives a write borrow to addWorld() 
-  addWorld(hello) // "write" can be inferred therefore omitted 
-}
+readFoo(read foo)
+readFoo(foo)  // Infer "read" from function's call signature
 ```
+
+### `move`
+
+
+
+## Rust Examples of Ownership Operators
+
+<table>
+<tr>
+<th>Operator</th>
+<th>BorrowScript</th>
+<th>Rust</th>
+</tr>
+<tr>
+<td><pre>read</pre></td>
+<td><pre>
+typescript
+function readFoo(read foo: string) {
+  console.log(foo) // "foo"
+}
+</pre></td>
+    <td></td>
+  </tr>
+</table>
 
 ### `read`
 
-The `read` operator prevents mutation deeply for all types, including arrays and maps. The compiler will fail to compile the application if a mutation is attempted when read access is provided.
-
+BorrowScript
 ```typescript
 function readFoo(read foo: string) {
   console.log(foo) // "foo"
 }
 ```
 
-Rust equivalent
+Rust
 ```rust
 fn read_foo(foo: &String) {
   print!("{}", foo);
@@ -284,8 +206,7 @@ fn read_foo(foo: &String) {
 
 ### `write`
 
-The `write` operator allows mutation deeply for all types, including arrays and maps. Only one write can be given out at any time. There can be no `read` borrows while there is a `write`.
-
+BorrowScript
 ```typescript
 function writeFoo(write foo: string) {
   foo.push('bar')
@@ -293,7 +214,7 @@ function writeFoo(write foo: string) {
 }
 ```
 
-Rust equivalent
+Rust
 ```rust
 fn write_foo(foo: &mut String) {
   foo.push_str("bar");  // Static string declaration
@@ -319,7 +240,7 @@ fn move_foo(mut foo: String) { // let mut foo
 }
 ```
 
-BorrowScript expresses this using the following syntax *(still in discussion)*:
+BorrowScript expresses this using the following syntax:
 
 ```typescript
 function moveFoo(foo: string) { // if omitted, the compiler will assume an immutable move
@@ -512,78 +433,6 @@ if (error != null) {
 }
 ```
 
-# Audiences
-
-BorrowScript targets the engineering of high level application development, namely:
-- Graphical applications
-  - Web applications via web assembly
-  - Native mobile applications
-  - Native desktop applications
-- Web servers
-- CLI tools
-- Embedded applications
-
-# Justification
-
-## GUI Applications
-
-Graphical applications written targeting web, desktop and mobile have seen a lot of innovation and attention. From technologies like React/React Native, Electron/Cordova to Flutter, there is an interest in creating client applications that are portable between platforms, are performant and memory efficient.
-
-While BorrowScript is simply a language and does not describe a framework that manages bindings to the various platform UI APIs - it does allow for a simple, familiar language which addresses the concerns that graphical applications have, making it a great candidate for such a use case.
-
-While its primary focus is targeting the web platform via web assembly, there is no reason we would not be able to see React-Native like platform producing native desktop and native mobile platforms.
-
-### Multi threading
-
-Effective use of multi-threading is critical for making graphical applications feel responsive. 
-
-As an example, web applications are often criticized for their lack of performance when compared to their native counterparts. Native applications however make maximal use of threads and as a result have interfaces that seldom block.
-
-Including a borrow checker into a familiar language used in web development means that concurrency across threads can be used without fear of data races. This will also allow graphical applications to be used on lower end devices as their resources can be utilized more effectively.
-
-### Small Binary
-
-As web assembly requires languages to ship their runtime, it's important for languages to ship as little runtime code as possible. 
-
-A borrow checker allows a compiler to compile the code without the need for a garbage collection implementation or a substantial runtime.
-
-This is valuable for web applications however, while not strictly required, efficient small binaries are also appreciated when distributing native applications and web server applications.
-
-## Web Servers:
-
-Web servers require high and consistent IO performance, maintainable code bases and simple distribution.
-
-There are many languages to choose from in this space making the argument for BorrowScript less compelling on the server side.
-
-There are a few ways that BorrowScript can be competitive in this context, however.
-
-### Performance (speculation)
-
-Rust performance is often compared to C++ and out performs languages like Go and Java. 
-
-While it's too early to guarantee performance, we know that TSCB is a slightly higher level Rust, where the types are replaced with built-ins. 
-
-I would like to see its performance sit between Rust and Go.
-
-### Go-like concurrency with Rust-like safety
-
-Having an application server written in a high level, familiar and maintainable language that promises the concurrently of a language like Go while also ensuring you cannot write data races might be compelling for back-end application developers.
-
-### Small, statically linked binaries are good for containers
-
-While this is an implementation detail of the compiler, entirely self contained binaries that embed their dependencies (unless explicitly specified) are fantastic from a distribution and security perspective.
-
-It allows engineers to distribute containerized applications based on `scratch` images.
-
-### No GC is good for performance consistency
-
-Languages without garbage collection have consistent performance as they avoid locks originating from garbage collection sweeps.
-
-This is especially noticeable in applications with lots of activity - such as chat servers.
-
-### Good candidate for PaaS, FaaS
-
-Lastly; small, self contained, memory and performance optimized binaries make for great candidates in PaaS or FaaS contexts (Lambda, App Engine, Heroku, etc). 
 
 # Language Design
 
