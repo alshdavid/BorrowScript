@@ -302,7 +302,7 @@ async ()[copy channel] => {
 channel.emit('Hello')
 ```
 
-Using `yield` in a loop allows will continue until the channel is closed or the look broken.
+Using a channel in a loop will loop over each emitted event until the channel is closed or the loop broken.
 
 ```typescript
 const channel = new Channel<string>()
