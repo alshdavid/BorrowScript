@@ -178,10 +178,9 @@ readFoo(foo)  // Infer "read" from function's call signature
 </tr>
 <tr>
 <td><pre>read</pre></td>
-<td><pre>
-typescript
+<td><pre lang="typescript">
 function readFoo(read foo: string) {
-  console.log(foo) // "foo"
+  console.log(foo)
 }
 </pre></td>
     <td></td>
@@ -193,7 +192,7 @@ function readFoo(read foo: string) {
 BorrowScript
 ```typescript
 function readFoo(read foo: string) {
-  console.log(foo) // "foo"
+  console.log(foo)
 }
 ```
 
