@@ -10,7 +10,7 @@
 <p>Statically Compiled Binary</p>
 
 <img align="left" height="30px" src="./assets/multi-threaded.svg">
-<p>Multi Threaded & Concurrent</p>
+<p>Multi Threaded, Concurrent without Race Conditions</p>
 
 <img align="left" height="30px" src="./assets/fast.svg">
 <p>Memory Safe Without Garbage Collection</p>
