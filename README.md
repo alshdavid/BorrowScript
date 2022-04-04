@@ -372,7 +372,7 @@ async ()[copy counterRef] => {
 }
 ```
 
-The Rust equivalent same thing in Rust would look like:
+The Rust equivalent would look like:
 
 ```rust
 fn main() {
@@ -388,7 +388,7 @@ fn main() {
 
 ## Error handling
 
-At this stage, errors will be return values from tuples
+At this stage, errors will be return values from tuples. Will probably support `try`/`catch` in the future.
 
 ```typescript
 const [ value, error ] = Number.fromString("Not a number")
