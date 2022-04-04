@@ -235,7 +235,7 @@ bar.push('bar')
 
 In Rust, callback functions do not automatically have access to the variables in their outer scope. In order to gain access to a variable from within a nested scope (callback function), you must explicitly import variables from the parent scope.
 
-Here is a simple example of this in TypeScript
+Here is a simple example of accessing outer scope in **TypeScript** (not BorrowScript)
 
 ```typescript
 const message = 'Hello World'
