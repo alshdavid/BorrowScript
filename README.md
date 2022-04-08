@@ -29,7 +29,7 @@ import console from '@std/console'
 
 function main() {
   const text = 'Hello World' // Dynamic string
-  console.log(read text) // Handing out a "read" borrow
+  console.log(text) // Handing out a "read" borrow
 }
 ```
 
