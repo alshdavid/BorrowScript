@@ -29,7 +29,7 @@ import console from '@std/console'
 
 function main() {
   const text = 'Hello World' // Dynamic string
-  console.log(text) // Handing out a "read" borrow
+  console.log(read text) // Handing out a "read" borrow
 }
 ```
 
@@ -102,7 +102,7 @@ All types are references to objects and can be mutated or reassigned if permitte
 const s: string = ""
 const n: number = 0
 const b: boolean = true
-const z: null = null // null is an object and not a null pointer
+const z: null = null
 const a: Array<string> = [] 
 const m: Map<string, string> = new Map()
 const s: Set<string> = new Set()
