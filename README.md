@@ -6,21 +6,13 @@
 <img align="left" height="30px" src="./assets/borrow-check.svg">
 <p>Rust inspired Borrow Checker, TypeScript inspired Syntax, Go inspired Concurrency</p>
 
-<img align="left" height="30px" src="./assets/static-binary.svg">
-<p>Statically Compiled Binary</p>
-
-<img align="left" height="30px" src="./assets/multi-threaded.svg">
-<p>Multi Threaded & Concurrent</p>
-
 <img align="left" height="30px" src="./assets/race-conditions.svg">
 <p>Compiler Protection from Race Conditions</p>
 
 <img align="left" height="30px" src="./assets/fast.svg">
-<p>Memory Safe without Garbage Collection</p>
+<p>No Runtime, No Garbage Collection, Memory Safe Guarentee</p>
 
 <br>
-
-<i>Please contribute your thoughts to the design of the language specification!</i>
 
 ## Hello World
 
@@ -36,20 +28,22 @@ function main() {
 ## CLI Usage
 
 ```shell
-bsc --os linux --arch arm64 -o main main.bs
+bsc -i main.bs -o main
 ```
 
 ## Summary
 
-BorrowScript aims to be a language that offers a Rust inspired borrow checker with a relatively simplified syntax.
+BorrowScript aims to be a language that offers a Rust inspired borrow checker within a TypeScript inspired syntax. 
 
-It aims to do this by offering higher level builtin types, builtin concurrency and more explanatory keywords for the borrow checker. 
+Basically, "what are the minimum changes required to TypeScript for it to support a borrow checker"
 
-It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing applications like desktop applications, web servers and web applications (through web assembly).
+It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing user-space applications - like desktop applications, web servers and web applications (through web assembly).
 
-BorrowScript does not expect to match the performance of Rust, but it aims to be competitive with languages like Go - offering more consistent performance, smaller binaries and a sensible language to target client programs.
+BorrowScript does not expect to match the performance of Rust but it aims to be competitive with languages like Go - offering more consistent performance, smaller binaries and a sensible language to target client programs where multi-threading is often under-utilized, dangerous or inaccesible.
 
 # Language Design
+
+<i>Please contribute your thoughts to the language design!</i>
 
 ## Variable Declaration
 
