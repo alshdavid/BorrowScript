@@ -20,7 +20,7 @@
 
 <br>
 
-<i>Please contribute your thoughts to the design of this language specification!</i>
+<i>Please contribute your thoughts to the design of the language specification!</i>
 
 ## Hello World
 
@@ -291,6 +291,30 @@ TODO
 ## Concurrency
 
 TODO
+
+## Dynamically Sized Types
+
+TODO
+
+Notes: Rust requires the `dyn` keyword when a type is supplied where the size is not known at compile time. An example of this is using a trait as a function parameter. Given everything in BorrowScript is expected to be a dynamically sized type, this might not be necessary.
+
+```rust
+trait Foo {
+  fn foo()
+}
+
+fn bar(f: Box<dyn Foo>) {}
+```
+
+## Interior Mutability
+
+TODO
+
+## Smart Pointers, Arc, Rc
+
+TODO
+
+Notes: It might be interesting to explore if it's possible to manage smart pointers at the compiler level; where if a variable is analysed as being used within a multi-threaded context it's transparently wrapped in an Arc otherwise an Rc is used. 
 
 ## Mutex
 
