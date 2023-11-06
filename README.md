@@ -189,7 +189,6 @@ function readFoo(read foo: string) {}
 const foo = "Hello World"
 
 readFoo(read foo)
-readFoo(foo)  // Infer "read" from function's call signature
 ```
 
 ### `move`
@@ -198,14 +197,13 @@ The `move` operator allows for transferal of a variable's ownership from one sco
 
 ```typescript
 function moveFooDefault(foo: string) {} // Defaults to move[const]
-function moveFooImmutable(move[const] foo: string) {}
-function moveFooMutable(move[let] foo: string) {}
+function moveFooImmutable(move foo: string) {}
+function moveFooMutable(move foo: string) {}
 
 function main() {
   const foo = "Hello World"
 
   moveFooDefault(move foo)
-  // moveFooDefault(foo) can be omitted
 }
 ```
 
@@ -227,8 +225,7 @@ bar.push('bar')
 |-|-|-|
 |`read`|<pre lang="typescript">function readFoo(read foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn read_foo(foo: &String) {&#13;  print!("{}", foo);&#13;}</pre>|
 |`write`|<pre lang="typescript">function writeFoo(write foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn write_foo(foo: &mut String) {&#13;  foo.push_str("bar");&#13;  print!("{}", foo);&#13;}</pre>|
-|`move[const]`|<pre lang="typescript">function moveFoo(move[const] foo: string) {&#13;  console.log(foo)&#13;}&#13;&#13;function moveFoo(foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(foo: String) {&#13;  print!("{}", foo);&#13;}</pre>|
-|`move[let]`|<pre lang="typescript">function moveFoo(move[let] foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn move_foo(mut foo: String) {&#13;  foo.push(String::from("bar"));&#13;  print!("{}", foo);&#13;}</pre>|
+|`move`|<pre lang="typescript">function moveFoo(move foo: string) {&#13;  console.log(read foo)&#13;}</pre>|<pre lang="rust">fn move_foo(foo: String) {&#13;  print!("{}", foo);&#13;}</pre>|
 
 
 ### Ownership Gates
@@ -250,9 +247,9 @@ In Rust, you have to move a value into the callback scope before using it.
 ```rust
 let message = String::from("Hello World");
 
-set_timeout(&(move || {
+set_timeout(move || {
   print!("{}", message);
-}));
+});
 ```
 In BorrowScript we describe imports from the parent scope of a callback using ownership gates which are declared as square brackets after the function parameters:
 
@@ -289,87 +286,26 @@ setTimeout(()[move messageCopy] => {
 
 ## Lifetimes
 
-Lifetimes are parameters described using the `lifeof` type operator within a generic definition.
-
-*This syntax needs a bit of work probably*
-
-```typescript
-function longestNumber<lifeof A>(read[A] x: number, read[A] y: number): A<number> {
-  // return the longer number
-}
-```
-What this essentially tells the compiler is to only work when both the `x` and `y` variables share the same lifespan. If one drops out of scope before the other (clearing it from memory) then the life times of the variables are not the same.
+TODO
 
 ## Concurrency
 
-BorrowScript will use Go-like co-routines to manage task queues across multiple processors. The control flow of these concurrent tasks will be managed with the concept of a `Channel` 
-
-_Note, BorrowScript uses `async`/`yield` differently to JavaScript. Think of `async` like the `go` keyword in the Go programming language and `yield` as the `<-` operator_
-
-### Starting a concurrent task with `async`
-
-A function is invoked concurrently by prefixing it with `async`
-
-```typescript
-function concurrentFunc() {
-  console.log('Hello World')
-}
-
-async concurrentFunc
-```
-
-You can do this with functions defined inline
-```typescript
-async () => {
-  console.log('Hello World')
-}
-```
-
-### Channels and `yield`
-
-A channel will `yield` a single value or values until it's closed. 
-
-Calling `yield` on a channel will provide the first value emitted on it.
-
-
-```typescript
-const channel = new Channel<string>()
-
-async ()[copy channel] => {
-  const message = yield channel
-  console.log(message) // 'Hello'
-}
-
-channel.emit('Hello')
-```
-
-Using a channel in a loop will loop over each emitted event until the channel is closed or the loop broken.
-
-```typescript
-const channel = new Channel<string>()
-
-async ()[copy channel] => {
-  for (const message of channel) {
-    console.log(message) // 'Hello', 'World'
-  }
-}
-
-channel.emit('Hello')
-channel.emit('World')
-```
+TODO
 
 ## Mutex
+
+_This will be updated pending changes to concurency_
 
 To manage variables that need to be written to from multiple threads we use a Mutex which holds a state and allows us to lock/unlock access to it, ensuring no one can get the value when it's being used.
 
 ```typescript
 const counterRef = new Mutex(0)
 
-async ()[copy counterRef] => {
+task.spawn(()[copy counterRef] => {
   let counter = counterRef.unlock()
   counter.increment()
   // <-- counterRef.lock() automatically invoked
-}
+})
 ```
 
 The Rust equivalent would look like:
@@ -379,27 +315,51 @@ fn main() {
   let counterRef = Arc::new(Mutex::new(0));
   let counterRef1 = counterRef.clone();
 
-  set_timeout(&(move || {
+  thread::spawn(move || {
+    thread::sleep(Duration::from_sec(1));
     let mut counter = counterRef1.lock().unwrap();
     counter* = counter* + 1;
-  }), 1000);
+  });
 }
 ```
 
 ## Error handling
 
-At this stage, errors will be return values from tuples. Will probably support `try`/`catch` in the future.
+We may explore an `Result` class in the future, but for now I aim to use TypeScript's algebreic type system in combination with compiler aware type elimination to use a simple union `Result` type.
 
 ```typescript
-const [ value, error ] = Number.fromString("Not a number")
-if (error != null) {
-  // handle
-}
+type Result<Value, Error> = { value: Value } | { error: Error }
 ```
+
+The compiler can eliminate possible type signatures through static code analysis and fail to compile in situations where the value could be either option.
+
+```typescript
+const result: Result<string. FileReadError> = readFile("/path/to/file.txt")
+
+if ('error' in result) {    // Compiler determines that this if statement can only execute if 
+  console.log(result.error) // the error type exists which also means the value option cannot exist
+
+                            // Trying to access result.value here will result in a compiler error
+
+  process.exit(1)           // By exiting here, the compiler knows that the error option 
+                            // is not possible beyond this point
+}
+
+console.log(result.value)   // By process of elimination, the compiler knows that result.value
+                            // is the only possibility at this point
+```
+
+The advantage of this is:
+1) `Result` `Option` classes could be built on top of this as wrappers
+2) You don't have to `.unwrap()` everything, reducing the amount of code and developers must read and write
+
+## Panic
+
+TODO
 
 ## Consuming External Libraries (FFI)
 
-Would be done similarly to [Deno's FFI implementation](https://deno.land/manual/runtime/ffi_api)
+TODO
 
 # Application Examples
 
@@ -430,7 +390,7 @@ _The API for the http library has not been finalized, this is an approximation_
 ```typescript
 import { Server, HeaderType, ContentType } from '@std/http'
 
-async function main() {
+function main() {
   const server = new Server()
 
   server.handle((req, res) => {
@@ -454,18 +414,18 @@ import { Server, HeaderType, ContentType } from '@std/http'
 import { Mutex } from '@std/sync'
 import { sleep, Duration } from '@std/time'
 
-async function main() {
+function main() {
   const server = new Server()
   const counterRef = new Mutex(0)
 
   // Increment counter every second
-  async ()[copy counterRef] => {
+  task.spawn(()[copy counterRef] => {
     while (true) {
       let value = counterRef.lock()
       value.increment()
       sleep(Duration.Second)
     }
-  }
+  })
 
   // Send the current value of the counter on the next request
   server.handle((req, res)[copy counterRef] => {
