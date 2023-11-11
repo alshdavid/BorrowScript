@@ -54,27 +54,6 @@ let foo = 'foo' // mutable
 const bar = 'bar' // immutable
 ```
 
-## Function Declarations
-
-Functions can be defined in full or using shorthand lambda expressions
-
-```typescript
-function foo() {} // immutable declaration
-
-// Shorthand
-const foo = () => {}
-let bar = () => {}
-```
-
-## Class Declaration
-
-```typescript
-class Foo {
-  constructor() {} // Invoked when class is instantiated
-  destructor() {} // Invoked when class is dropped from scope
-}
-```
-
 ## Types
 
 BorrowScript contains opinionated builtin types. Where Rust would use something like:
@@ -123,6 +102,22 @@ let bar = foo // move the value from immutable "foo" into mutable "bar"
 bar.push(' World')
 ```
 
+## Function Declarations
+
+Functions can be defined in full or using shorthand lambda expressions
+
+```typescript
+function foo() {} // immutable declaration
+
+// Shorthand
+const foo = () => {}
+let bar = () => {}
+```
+
+TODO
+
+How to handle `Fn`, `FnOnce`, etc
+
 ## Ownership
 
 The BorrowScript compiler will handle memory allocations and de-allocations at compile time, producing a binary that does not require a runtime garbage collector. This ensures consistent and efficient performance of applications written using BorrowScript.
@@ -151,8 +146,6 @@ An owner can `move` a variable to another scope and doing so will make that valu
 ## Ownership Operators
 
 ### `read`/`write`
-
-
 
 ```typescript
 function readFoo(read foo: string) {}
@@ -276,6 +269,46 @@ setTimeout(()[move messageCopy] => {
   const message = messageCopy
   console.log(message)
 })
+```
+
+## Class Declaration
+
+TODO
+
+```typescript
+class Foo {
+  public value: number
+
+  // Invoked when class is instantiated
+  constructor(
+    value: number
+  ) {
+    this.value = value
+  }
+
+  // Invoked when class is dropped from scope
+  destructor() {
+    console.log('Foo has been deallocated')
+  }
+
+  // Available to "let" and "const" declarations
+  public read printValue(): void {
+    console.log(read this.value)
+  }
+
+  // Only available to "let" declarations
+  public write updateValue(value: move string): void {
+    this.value = value
+  }
+}
+
+function main() {
+  let foo = new Foo(42)
+
+  foo.printValue()
+  foo.updateValue(4242)
+  foo.printValue()
+}
 ```
 
 ## Generic Lifetimes
