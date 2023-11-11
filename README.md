@@ -316,10 +316,10 @@ function largest<A extends lifeof>(x: A & number, y: A & number): A & number {
 }
 ```
 
-Or perhaps a magic generic like so
+Or perhaps some weird magic generic like so
 
 ```typescript
-function largest<A extends lifetime>(x: A<number>, y: A<number>): A<number> {
+function largest<A extends lifeof>(A(x): number, A(y): number): A(number) {
   if (x > y) {
     return x
   }
