@@ -315,7 +315,7 @@ function main() {
 
 ## Interfaces
 
-Interfaces will be used as structurally evaluated types
+Interfaces will be used as structurally evaluated types to help with the creation of generic utilities and testing
 
 ```typescript
 class Foo {
@@ -336,7 +336,7 @@ Classes can optionally guard against changes through the `implements` keyword.
 
 This is purely compile time validation to ensure the class does not stray from the desired interface and can be ommited.
 
-```
+```typescript
 class Foo implements IFoo {
   public read foo(): number { return 42 }
 }
