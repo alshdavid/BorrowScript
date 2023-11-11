@@ -275,6 +275,8 @@ setTimeout(()[move messageCopy] => {
 
 TODO
 
+There will be no `extends`
+
 ```typescript
 class Foo {
   public value: number
@@ -308,6 +310,47 @@ function main() {
   foo.printValue()
   foo.updateValue(4242)
   foo.printValue()
+}
+```
+
+## Interfaces
+
+Interfaces will be used as structurally evaluated types
+
+```typescript
+class Foo {
+  public read foo(): number { return 42 }
+  public read bar(): number { return 4242}
+}
+
+interface IFoo {
+  foo(): number
+}
+
+function main() {
+  let f: IFoo = new Foo()
+}
+```
+
+Classes can optionally guard against changes through the `implements` keyword. 
+
+This is purely compile time validation to ensure the class does not stray from the desired interface and can be ommited.
+
+```
+class Foo implements IFoo {
+  public read foo(): number { return 42 }
+}
+
+class Foo2 {
+  public read foo(): number { return 42 }
+}
+
+function useFoo(f: IFoo) {}
+
+// Both are valid
+function main() {
+  useFoo(new Foo())
+  useFoo(new Foo2())
 }
 ```
 
