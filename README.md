@@ -278,9 +278,54 @@ setTimeout(()[move messageCopy] => {
 })
 ```
 
-## Lifetimes
+## Generic Lifetimes
 
 TODO
+
+Notes:
+
+You can see a fantastic video summary by Bogdan Pshonyak here: [Let's get Rusty - The Rust Survival Guide](https://youtu.be/usJDUSrcwqI?si=rxhD7gEio_8o_qDn&t=602)
+
+I am still struggling to explain what Rust lifetimes are - which I take as an indication that I don't understand them well enough yet. This is my attempt:
+
+Rust tracks the "life time" of variables within Rust to determine when a value should be dropped. The compiler cannot statically analyse the lifetime of variables that are passed into abstractions as reference types (like structs and functions) and so the compiler requires assistance from the programmer to help it understand the life time expectation of those references. This is done through a generic type paramater that starts with a `'` character.
+
+For example a function that returns the largest number of two number references
+
+```rust
+fn largest<'a>(x: &'a u32, y: &'a u32) -> &'a u32 {
+    if x > y {
+        return x;
+    }
+    return y;
+}
+```
+
+The `'a` type parameter is placed on both the input values of `x` and `y` connecting their life times. The `'a` type parameter is also on the return type, stating that the life time of the returned value is equal to the shortest lifetime of the associated parameters.
+
+Lifetimes can be circumvented by using reference counters, however this moves the burden of tracking to runtime code execution and is essentially GC.
+
+Trying to imagine a TypeScript-y way to describe lifetime annotations is tricky and I am still working it out. Perhaps we could use intersection types like so: 
+
+```typescript
+function largest<A extends lifeof>(x: A & number, y: A & number): A & number {
+  if (x > y) {
+    return x
+  }
+  return y
+}
+```
+
+Or perhaps a magic generic like so
+
+```typescript
+function largest<A extends lifetime>(x: A<number>, y: A<number>): A<number> {
+  if (x > y) {
+    return x
+  }
+  return y
+}
+```
 
 ## Concurrency
 
