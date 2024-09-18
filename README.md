@@ -4,13 +4,13 @@
 <p> &nbsp</p>
 
 <img align="left" height="30px" src="./assets/borrow-check.svg">
-<p>Rust inspired Borrow Checker, TypeScript inspired Syntax, Go inspired Concurrency</p>
+<p>TypeScript Syntax, Rust Borrow Checker, Go Philosophies</p>
 
 <img align="left" height="30px" src="./assets/race-conditions.svg">
-<p>Compiler Protection from Race Conditions</p>
+<p>High Performance, Fearless Concurrency, Compile Time Checks</p>
 
 <img align="left" height="30px" src="./assets/fast.svg">
-<p>No Runtime, No Garbage Collection, Memory Safe Guarentee</p>
+<p>No Garbage Collection, Memory Safety Guarantee</p>
 
 <br>
 
@@ -20,26 +20,28 @@
 import console from '@std/console'
 
 function main() {
-  const text = 'Hello World' // Dynamic string
-  console.log(read text) // Handing out a "read" borrow
+  const text = 'Hello World'
+  console.log(read text)
 }
 ```
 
 ## CLI Usage
 
 ```shell
-bsc -i main.bs -o main
+$ bsc main.bs
+$ ./main
+> "Hello World"
 ```
 
 ## Summary
 
-BorrowScript aims to be a language that offers a Rust inspired borrow checker within a TypeScript inspired syntax. 
+BorrowScript aims to be a language that offers a TypeScript inspired syntax with concepts borrowed from Rust and Go. 
 
-Basically, "what are the minimum changes required to TypeScript for it to support a borrow checker"
+Basically; "what are the minimum changes required to TypeScript for it to support a borrow checker"
 
 It's hoped that this will make using/learning a borrow checker more accessible while also offering a higher level language well suited to writing user-space applications - like desktop applications, web servers and web applications (through web assembly).
 
-BorrowScript does not expect to match the performance of Rust but it aims to be competitive with languages like Go - offering more consistent performance, smaller binaries and a sensible language to target client programs where multi-threading is often under-utilized, dangerous or inaccesible.
+BorrowScript does not expect to match the performance of Rust but it aims to be competitive with languages like Go - offering more consistent performance, smaller binaries and a sensible language to target client programs where multi-threading is often under-utilized, dangerous or inaccessible.
 
 # Language Design
 
@@ -50,23 +52,24 @@ BorrowScript does not expect to match the performance of Rust but it aims to be 
 To declare a variable you can use the keywords `const` and `let`, which describe immutable and mutable bindings.
 
 ```typescript
-let foo = 'foo' // mutable
+let foo = 'foo'   // mutable
 const bar = 'bar' // immutable
 ```
 
 ## Types
 
-BorrowScript contains opinionated builtin types. Where Rust would use something like:
-
-```rust
-let myString: String = String::from("Hello World");
-```
-
-BorrowScript uses:
+BorrowScript contains opinionated built in types:
 
 ```typescript
 const myString: string = "Hello World"
 const myString = "Hello World" // type inference
+```
+
+Where Rust would have multiple types for different use cases:
+
+```rust
+let myString: String = String::from("Hello World");
+let myString2: &str = "Hello World"
 ```
 
 All types are references to objects and can be mutated or reassigned if permitted. The types are as follows:
@@ -81,16 +84,20 @@ const m: Map<string, string> = new Map()
 const s: Set<string> = new Set()
 ```
 
-Nullable types are described as:<br>
+## Enums
+
+BorrowScript features Rust-inspired enum types and match statements
 
 ```typescript
-let foo: string | null = 'foo'
-let bar: string | null = null
+enum Foobar {
+  Foo,
+  Bar
+}
 ```
 
 ### Mutability
 
-Mutability is defined in the binding and affects the _entire_ value (deeply). 
+Mutability is defined in the binding and affects the _entire_ value (deeply, unlike TypeScript). 
 
 It's essentially a guarantee that any value assigned to the container will abide by the mutability rules defined on the binding.
 
@@ -98,7 +105,8 @@ Reassignment to another binding will allow values to be changed from mutable/imm
 
 ```typescript
 const foo: string = 'Hello' // immutable string assignment
-let bar = foo // move the value from immutable "foo" into mutable "bar"
+let bar = foo               // move the value from immutable "foo" into mutable "bar"
+                            // "foo" become inaccessible after it has been moved, "bar" can be used
 bar.push(' World')
 ```
 
@@ -114,53 +122,68 @@ const foo = () => {}
 let bar = () => {}
 ```
 
-TODO
-
-How to handle `Fn`, `FnOnce`, etc
-
 ## Ownership
 
-The BorrowScript compiler will handle memory allocations and de-allocations at compile time, producing a binary that does not require a runtime garbage collector. This ensures consistent and efficient performance of applications written using BorrowScript.
+The BorrowScript compiler will handle memory allocations and de-allocations at compile time, producing a binary that does not require a runtime garbage collector. 
 
-In order for the compiler to know when a value is ready to be released from memory, it needs some hints from the programmer.
-
-Following in Rust's footsteps, BorrowScript uses an ownership tracker to know when a variable is no longer referenced and it's safe to release it from memory.
-
-A secondary benefit is the compiler can know if a value is at risk of being written to from multiple threads - allowing the compiler to avoid compilation if it detects race conditions.
-
-The "owner" of a variable is its declaration scope:
+This is done through the automatic de-allocation of values when they fall out of their owned scope.
 
 ```typescript
 function main() {
-  const foo = 'Hello World' // "foo" is owned by "main"
+  const foo = 'Hello World' // "foo" is allocated and owned by "main"
 
-  // <-- at the end of main's block, the value in "foo" is released 
+  // <-- at the end of main's block, "foo" is de-allocated
   //     avoiding the need for a garbage collector
 }
 ```
 
-Ownership can be loaned out to another scope as `read` or `write`. There can either be be one scope with `write` access or unlimited scopes with `read` access.
+### Borrowing 
 
-An owner can `move` a variable to another scope and doing so will make that value inaccessible in its original scope.
-
-## Ownership Operators
-
-### `read`/`write`
+Ownership can be temporarily loaned out to another scope with `read` or `write` permissions.
 
 ```typescript
 function readFoo(read foo: string) {}
-function writeFoo(write foo: string) {}
 
 function main() {
   let foo = "Hello World" // "foo" is owned by main
+  readFoo(read foo)       // "foo" is lent to "readFoo" with "read" permission
+  // <---------------------- "foo" is still owned by "main" and is de-allocated when "main" completes
+}
+```
 
-  readFoo(read foo) // "foo" has 1/infinite read borrow
-  // "foo" has 0/infinite read borrow
+There can only be one owner of the value and either one scope with `write` access or unlimited scopes with `read` access.
 
-  writeFoo(write foo) // "foo" has 1/1 write borrow
-  // "foo" has 0/1 write borrow
+```typescript
+function main() {
+  let foo = "Hello World" // "foo" is owned by main
+  readFoo(read foo)       // "foo" loaned to "readFoo" with 1 of infinite read borrows
+  // <---------------------- "readFoo" completes decrementing the read borrow to 0 of infinite read borrows
+  writeFoo(write foo)     // "foo" loaned to "writeFoo" with 1 of 1 write borrows
+  // <---------------------- "writeFoo" completes decrementing the write borrow to 0 of 1 write borrows
+  // <---------------------- "foo" is owned by "main" and is de-allocated when "main" completes
+}
+```
 
-  // <-- "foo" is released 
+An owner can `move` a variable to another scope and doing so will make that value inaccessible in its original scope.
+
+### Ownership Operators `read` `write` `move` `copy`
+
+
+```typescript
+function moveFoo(let foo: string) { // "foo" is moved into "moveFoo" which consumes it as mutable
+                                    // if "let" is omitted, the moved value assumes "const"
+  readFoo(read foo)
+  writeFoo(write foo)
+  // <---------------------- "foo" is owned by "moveFoo" and is de-allocated when "moveFoo" completes
+}
+
+function main() {
+  let foo = "Hello World" // "foo" is owned by main
+  readFoo(read foo)       // "foo" loaned to "readFoo" with 1 of infinite read borrows
+  // <---------------------- "readFoo" completes decrementing the read borrow to 0 of infinite read borrows
+  moveFoo(foo)            // "foo" moved into "moveFoo"
+  // <---------------------- "foo" is no longer available in "main"
+  // console.log(foo)     // Attempts to access "foo" in this scope will fail after it has been moved
 }
 ```
 
@@ -168,191 +191,249 @@ A scope with `write` has `read`/`write`. <br>
 A scope with `read` has `read` only. <br>
 A scope can only lend out to another scope a permission equal or lower than the current held permission.
 
-*Note that the ownership operator can be omitted when passing a value into a function*
-
-```typescript
-function readFoo(read foo: string) {}
-
-const foo = "Hello World"
-
-readFoo(read foo)
-```
-
-### `move`
-
-The `move` operator allows for transferal of a variable's ownership from one scope to another. This literally removes a variable from the current scope and makes it unavailable.
-
-```typescript
-function moveFooDefault(foo: string) {} // Defaults to move[const]
-function moveFooImmutable(move foo: string) {}
-function moveFooMutable(move foo: string) {}
-
-function main() {
-  const foo = "Hello World"
-
-  moveFooDefault(move foo)
-}
-```
-
-### `copy`
-
-This is syntax sugar specifically for BorrowScript. It invokes the `.copy()` method on an object.
-
-The use case for this is to simplify the transferal of types through "ownership gates" which we will discuss further below
+A value can be copied, creating a new owned value
 
 ```typescript
 const foo = "foo"
-let bar = copy foo // same as foo.copy()
+let bar = copy foo        // same as foo.copy()
 bar.push('bar')
+```
+
+```typescript
+function main() {
+  let foo = "Hello World" // "foo" is owned by main
+  moveFoo(copy foo)       // a new copy of "foo" is moved into "moveFoo"
+  console.log(foo)        // "foo" can still be accessed from this scope
+}
 ```
 
 ## Rust Examples of Ownership Operators
 
-|Operator|BorrowScript|Rust|
-|-|-|-|
-|`read`|<pre lang="typescript">function readFoo(read foo: string) {&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn read_foo(foo: &String) {&#13;  print!("{}", foo);&#13;}</pre>|
-|`write`|<pre lang="typescript">function writeFoo(write foo: string) {&#13;  foo.push('bar')&#13;  console.log(foo)&#13;}</pre>|<pre lang="rust">fn write_foo(foo: &mut String) {&#13;  foo.push_str("bar");&#13;  print!("{}", foo);&#13;}</pre>|
-|`move`|<pre lang="typescript">function moveFoo(move foo: string) {&#13;  console.log(read foo)&#13;}</pre>|<pre lang="rust">fn move_foo(foo: String) {&#13;  print!("{}", foo);&#13;}</pre>|
+<table>
+<tr><th>Operator</th><th>BorrowScript</th><th>Rust</th></tr>
 
+<tr><td>Read</td><td>
 
-### Ownership Gates
+```typescript
+function readFoo(read foo: string) {
+  console.log(foo)
+}
+```
+</td><td>
 
-In Rust, callback functions do not automatically have access to the variables in their outer scope. In order to gain access to a variable from within a nested scope (callback function), you must explicitly import variables from the parent scope.
+```rust
+fn read_foo(foo: &String) {
+  print!("{}", foo);
+}
+```
 
-Here is a simple example of accessing outer scope in **TypeScript** (not BorrowScript)
+</td></tr>
+<tr><td>Write</td><td>
+
+```typescript
+function writeFoo(write foo: string) {
+  foo.push("bar")
+}
+```
+</td><td>
+
+```rust
+fn write_foo(foo: &mut String) {
+  foo.push_str("bar")
+}
+```
+
+</td></tr>
+<tr><td>Move (mutable)</td><td>
+
+```typescript
+function moveMutFoo(let foo: string) {
+  foo.push("bar")
+}
+```
+</td><td>
+
+```rust
+fn move_mut_foo(mut foo: String) {
+  foo.push_str("bar")
+}
+```
+
+</td></tr>
+<tr><td>Move (immutable)</td><td>
+
+```typescript
+function moveFoo(foo: string) {
+  console.log(foo)
+}
+```
+</td><td>
+
+```rust
+fn move_foo(foo: String) {
+  print!("{}", foo);
+}
+```
+
+</td></tr>
+</table>
+
+### Closures / Callbacks
+
+Callbacks in BorrowScript don't automatically have access to variables in their outer scope. In order for a callback to gain access to a variable from an outer scope, it must be explicitly imported from its parent scope.
+
+This is done using "gate" parameters within square brackets.
 
 ```typescript
 const message = 'Hello World'
 
-setTimeout(() => {
+setTimeout([message]() => {
   console.log(message)
-})
+}, 0)
 ```
 
-In Rust, you have to move a value into the callback scope before using it.
+This is required because the compiler must move the value from the parent scope and into the nested callback scope
 
-```rust
-let message = String::from("Hello World");
-
-set_timeout(move || {
-  print!("{}", message);
-});
-```
-In BorrowScript we describe imports from the parent scope of a callback using ownership gates which are declared as square brackets after the function parameters:
+Once moved, the original value is no longer accessible to the outer scope
 
 ```typescript
-const message = "Hello World"
+const message = 'Hello World'
 
-setTimeout(()[move message] => { // "move" can be omitted as it's the default action
+setTimeout([message]() => {
   console.log(message)
-})
+}, 0)
+
+// console.log(message)               <- "message" has been moved and can no longer be accessed here
 ```
 
-The complete syntax looks like:
+This enables the principle of "fearless concurrency" - making race conditions in multi-threaded contexts impossible
+
 ```typescript
-function name<T>(params)[gate]: void { }
+import thread from "std:thread"
+
+function main() {
+  let message = 'Hello World'
+
+  thread.spawn([copy message]() => { // Create a new OS thread and copy "message" into that scope
+    console.log(message)
+  })
+
+  console.log(message)               // "message" is still available in "main"
+
+  thread.spawn([message]() => {      // Create a new OS thread and move "message" into that scope 
+    console.log(message)
+  })
+}
 ```
 
-You can also copy a value into a child scope using ownership gates. Using copy will create a shadow variable with the same name within the child scope.
+## Multiple Owners & Multiple Mutable References
 
-This is used for moving mutexes into concurrent contexts.
+Unless I can find a way to infer and automatically apply smart pointers and mutexes to shared references, they will need to be explicitly defined.
 
 ```typescript
-setTimeout(()[copy message] => { })
-```
-Which is equivalent to:
-```typescript
-const message = "Hello World"
+import { Error } from 'std:error'
+import thread, { Handle } from 'std:thread'
+import { Mutex, Arc } from 'std:sync'
 
-const messageCopy = message.copy()
-setTimeout(()[move messageCopy] => {
-  const message = messageCopy
-  console.log(message)
-})
+function main(): Result<void, Error> {
+  const count = Arc.new(Mutex.new(0))
+  let handles: Array<Handle> = []
+
+  for (const i in 0..10) {  
+    handles.push(thread.spawn([copy message]() => { // Spawn a thread and copy a reference to the mutex + value 
+      let count = count.lock()                      // Unlock the mutex and assign it to a mutable container
+      count++                                       // Increment the count ("count" is a "&mut i32")
+    }))
+  }
+  
+  for (const handle in handles) handle.join()?      // Wait for threads to complete, propagate the error if a thread failes
+                
+  console.log(message.lock())                       // Unlock the mutex and print the inner value 
+                                                    // Prints "10"
+}
 ```
 
 ## Class Declaration
 
 TODO
 
-There will be no `extends`
+BorrowScript will have FFI capabilities similar to Rust and will need to have structs to facilitate that.
+
+I personally like classes as a means to visually group methods with an object but if there are classes they will not be extendable.
+
+My preference is composition over inheritance and appreciate Go's ability to embed structs within other structs.
+
+At this stage, my feeling is that classes will not be part of the language unless I can find a way to make them fit naturally within the language
+
+## Structural Types and Type Kung-Fu
+
+TODO: depends on struct syntax
+
+I love the ability in TypeScript to accept values by their shape and want this to be a part of BorrowScript
 
 ```typescript
-class Foo {
-  public value: number
-
-  // Invoked when class is instantiated
-  constructor(
-    value: number
-  ) {
-    this.value = value
-  }
-
-  // Invoked when class is dropped from scope
-  destructor() {
-    console.log('Foo has been deallocated')
-  }
-
-  // Available to "let" and "const" declarations
-  public read printValue(): void {
-    console.log(read this.value)
-  }
-
-  // Only available to "let" declarations
-  public write updateValue(value: move string): void {
-    this.value = value
-  }
-}
-
-function main() {
-  let foo = new Foo(42)
-
-  foo.printValue()
-  foo.updateValue(4242)
-  foo.printValue()
-}
-```
-
-## Interfaces
-
-Interfaces will be used as structurally evaluated types to help with the creation of generic utilities and testing
-
-```typescript
-class Foo {
-  public read foo(): number { return 42 }
-  public read bar(): number { return 4242}
-}
-
 interface IFoo {
-  foo(): number
+  foo(read self): void
+}
+
+function acceptFoo(read foo: IFoo) {}        // Function that accepts a type that looks like the IFoo interface
+
+struct Foo {}
+
+impl Foo {
+  foo(read self): void {}
+}
+
+struct AlsoFoo {}
+
+impl AlsoFoo {
+  foo(read self): void {}
 }
 
 function main() {
-  let f: IFoo = new Foo()
+  const foo1 = Foo{}
+  const foo1 = AlsoFoo{}
+
+  acceptFoo(read foo1)
+  acceptFoo(read foo2)
 }
 ```
 
-Classes can optionally guard against changes through the `implements` keyword. 
+In Rust, this is expressed using the `dyn` keyword - however there are cases where the unknown size of a value request a `Box<dyn T>`. 
 
-This is purely compile time validation to ensure the class does not stray from the desired interface and can be ommited.
+There are also considerations on if/how interfaces need to be described as satisfied. Rust uses its `trait` system to describe this but this couples the struct to the type it satisfies.
+
+Go can accept structs as interfaces, implicitly inferring that the struct satisfies the type from its shape - however this is only one level deep (meaning interfaces that have methods that return interfaces don't work).
+
+### Type Kung Fu (Algebraic Types)
+
+TODO
+
+I have seen this topic to be misunderstood and polarizing but ultimately it's simply the ability to unify and allow the compiler to discriminate types structurally
 
 ```typescript
-class Foo implements IFoo {
-  public read foo(): number { return 42 }
-}
-
-class Foo2 {
-  public read foo(): number { return 42 }
-}
-
-function useFoo(f: IFoo) {}
-
-// Both are valid
 function main() {
-  useFoo(new Foo())
-  useFoo(new Foo2())
+  const stringOrNumber: string | number = 0
+
+  match (typeof stringOrNumber) {
+    number(value => console.log(value))
+    string(value => console.log(value))
+  }
 }
 ```
+
+Personally I quite like this as it can be used to compose types together
+
+```typescript
+type Foo = { foo: string }
+type Bar = { bar: number }
+type Foobar = Foo & Bar
+```
+
+And creating new types using TypeScript's `keyof` `in` `extends` keywords can be quite ergonomic.
+
+It is quite difficult to implement though and will need more thinking. I'd like to do as much in the compiler as possible and this may require that union variables live inside a container with that type metadata included.
+
 
 ## Generic Lifetimes
 
@@ -362,217 +443,72 @@ Notes:
 
 You can see a fantastic video summary by Bogdan Pshonyak here: [Let's get Rusty - The Rust Survival Guide](https://youtu.be/usJDUSrcwqI?si=rxhD7gEio_8o_qDn&t=602)
 
-I am still struggling to explain what Rust lifetimes are - which I take as an indication that I don't understand them well enough yet. This is my attempt:
+I haven't thought of a way to apply this to BorrowScript without reaching for Rust's `'` generic type parameter.
 
-Rust tracks the "life time" of variables within Rust to determine when a value should be dropped. The compiler cannot statically analyse the lifetime of variables that are passed into abstractions as reference types (like structs and functions) and so the compiler requires assistance from the programmer to help it understand the life time expectation of those references. This is done through a generic type paramater that starts with a `'` character.
 
-For example a function that returns the largest number of two number references
+## Async, Concurrency, Threads
 
-```rust
-fn largest<'a>(x: &'a u32, y: &'a u32) -> &'a u32 {
-    if x > y {
-        return x;
-    }
-    return y;
-}
-```
+For BorrowScript to work in many different environments (wasm, napi, iot), it needs to give the developer control of how concurrency works.
 
-The `'a` type parameter is placed on both the input values of `x` and `y` connecting their life times. The `'a` type parameter is also on the return type, stating that the life time of the returned value is equal to the shortest lifetime of the associated parameters.
-
-Lifetimes can be circumvented by using reference counters, however this moves the burden of tracking to runtime code execution and is essentially GC.
-
-Trying to imagine a TypeScript-y way to describe lifetime annotations is tricky and I am still working it out. Perhaps we could use intersection types like so: 
+There will be the capability to create system threads using OS APIs
 
 ```typescript
-function largest<A extends lifeof>(x: A & number, y: A & number): A & number {
-  if (x > y) {
-    return x
-  }
-  return y
+import thread from 'std:thread'
+
+function main() {
+  thread
+    .spawn(() => {
+      console.log('hello world')
+    })
+    .join()
+    .panicOnError()
 }
 ```
 
-Or perhaps some weird magic generic like so
+Async will be supported using an async runtime selected by the developer, where the runtimes will be provided by the standard library
 
 ```typescript
-function largest<A extends lifeof>(A(x): number, A(y): number): A(number) {
-  if (x > y) {
-    return x
-  }
-  return y
+import asynch from 'std:asynch'
+
+function main() {
+  let rt = asynch
+    .runtime({ workers: 4 })
+    .blockOn(async () => {
+      console.log('hello world')
+    })
+    .panicOnError()
 }
 ```
 
-## Concurrency
-
-TODO
-
-## Dynamically Sized Types
-
-TODO
-
-Notes: Rust requires the `dyn` keyword when a type is supplied where the size is not known at compile time. An example of this is using a trait as a function parameter. Given everything in BorrowScript is expected to be a dynamically sized type, this might not be necessary.
-
-```rust
-trait Foo {
-  fn foo()
-}
-
-fn bar(f: Box<dyn Foo>) {}
-```
-
-## Interior Mutability
-
-TODO
-
-## Smart Pointers, Arc, Rc
-
-TODO
-
-Notes: It might be interesting to explore if it's possible to manage smart pointers at the compiler level; where if a variable is analysed as being used within a multi-threaded context it's transparently wrapped in an Arc otherwise an Rc is used. 
-
-## Mutex
-
-_This will be updated pending changes to concurency_
-
-To manage variables that need to be written to from multiple threads we use a Mutex which holds a state and allows us to lock/unlock access to it, ensuring no one can get the value when it's being used.
+And simplified with the use of compiler macros
 
 ```typescript
-const counterRef = new Mutex(0)
+import asynch from 'std:asynch'
 
-task.spawn(()[copy counterRef] => {
-  let counter = counterRef.unlock()
-  counter.increment()
-  // <-- counterRef.lock() automatically invoked
-})
+@asynch.main!()
+async function main() {
+  console.log('Hello World')
+}
 ```
 
-The Rust equivalent would look like:
+Where wasm, napi, etc can select the runtime which makes sense for them
 
-```rust
-fn main() {
-  let counterRef = Arc::new(Mutex::new(0));
-  let counterRef1 = counterRef.clone();
+```typescript
+import asynchWasm from 'std:asynch/wasm'
+import asynch from 'std:asynch'
 
-  thread::spawn(move || {
-    thread::sleep(Duration::from_sec(1));
-    let mut counter = counterRef1.lock().unwrap();
-    counter* = counter* + 1;
-  });
+@asynch.main!(asynchWasm.default)
+async function main() {
+  console.log('Hello World')
 }
 ```
 
 ## Error handling
 
-We may explore an `Result` class in the future, but for now I aim to use TypeScript's algebreic type system in combination with compiler aware type elimination to use a simple union `Result` type.
-
-```typescript
-type Result<Value, Error> = { value: Value } | { error: Error }
-```
-
-The compiler can eliminate possible type signatures through static code analysis and fail to compile in situations where the value could be either option.
-
-```typescript
-const result: Result<string. FileReadError> = readFile("/path/to/file.txt")
-
-if ('error' in result) {    // Compiler determines that this if statement can only execute if 
-  console.log(result.error) // the error type exists which also means the value option cannot exist
-
-                            // Trying to access result.value here will result in a compiler error
-
-  process.exit(1)           // By exiting here, the compiler knows that the error option 
-                            // is not possible beyond this point
-}
-
-console.log(result.value)   // By process of elimination, the compiler knows that result.value
-                            // is the only possibility at this point
-```
-
-The advantage of this is:
-1) `Result` `Option` classes could be built on top of this as wrappers
-2) You don't have to `.unwrap()` everything, reducing the amount of code and developers must read and write
-
-## Panic
-
-TODO
+Will use Rust-style `Result` enum and pattern matching and the `?` operator to propagate errors upwards
 
 ## Consuming External Libraries (FFI)
 
 TODO
 
-# Application Examples
-
-## Hello World
-
-```typescript
-import console from '@std/console'
-
-function main() {
-  const text: string = 'Hello World'
-  console.log(text)
-}
-```
-
-We create an immutable reference to a `string` object. We then give read-only access to the `console.log` method, where the value is consumed.
-
-#### Notes
-- An application begins execution at the `main` function.
-- When `main` exits, it returns a status code `0` as default
-- Imports starting with `@std/*` target the standard library
-
-## Simple HTTP Server
-
-HTTP server that is multi-threaded and the handler functions are concurrent and possibly multi-threaded.
-
-_The API for the http library has not been finalized, this is an approximation_
-
-```typescript
-import { Server, HeaderType, ContentType } from '@std/http'
-
-function main() {
-  const server = new Server()
-
-  server.handle((req, res) => {
-    res.setHeader(HeaderType.ContentType, ContentType.Text)
-    res.send('Hello World')
-  })
-
-  server.listen(3000)
-}
-```
-
-## HTTP Server with State
-
-HTTP server that increments a counter stored in a mutex. On each request the counter value will be incremented and the value sent back in the response.
-The HTTP server is multi-threaded and the handler function is scheduled on one of the available threads.
-
-_This is dependant on the design decision describing how ownership of values is passed into nested closures and not final_
-
-```typescript
-import { Server, HeaderType, ContentType } from '@std/http'
-import { Mutex } from '@std/sync'
-import { sleep, Duration } from '@std/time'
-
-function main() {
-  const server = new Server()
-  const counterRef = new Mutex(0)
-
-  // Increment counter every second
-  task.spawn(()[copy counterRef] => {
-    while (true) {
-      let value = counterRef.lock()
-      value.increment()
-      sleep(Duration.Second)
-    }
-  })
-
-  // Send the current value of the counter on the next request
-  server.handle((req, res)[copy counterRef] => {
-    const value = counterRef.lock()
-    res.setHeader(HeaderType.ContentType, ContentType.Text)
-    res.send(value)
-  })
-
-  server.listen(3000)
-}
-```
+tl;dr yes
